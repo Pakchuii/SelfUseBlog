@@ -117,237 +117,450 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
   const articles = BlogStore.getArticles();
 
   container.innerHTML = `
-    <div style="min-height: 100vh; background: var(--bg-color); padding: 2rem; padding-bottom: 5rem;">
-      <div style="max-width: 1200px; margin: 0 auto;">
-        
-        <!-- Header -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-          <h1 style="font-family: var(--font-heading);">控制台 / COMMAND CENTER</h1>
-          <div>
-            <button id="logout-btn" class="action-btn" style="padding: 0.5rem 1rem; background: #ff4757; color: white; border: none; border-radius: 4px; cursor: pointer;">注销 / LOGOUT</button>
-            <button id="close-admin-btn" class="action-btn" style="padding: 0.5rem 1rem; background: var(--text-main); color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 1rem;">关闭 / CLOSE</button>
-          </div>
+    <div id="admin-viewport" style="height: 100vh; background: transparent; padding: 2rem 0; display: flex; flex-direction: column; overflow: hidden; position: relative; z-index: 10; perspective: 2000px;">
+      
+      <!-- Fixed Header -->
+      <div id="admin-header" style="padding: 0 4rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; transition: all 0.5s ease;">
+        <div>
+          <h1 style="font-family: var(--font-heading); font-size: 2.2rem; margin: 0; color: #ffffff; text-shadow: 0 0 20px rgba(0,0,0,0.8), 0 4px 10px rgba(0,0,0,0.8); letter-spacing: 1px;">管理矩阵 / <span style="color: #4cd137; text-shadow: 0 0 10px rgba(76, 209, 55, 0.5);">MATRIX</span></h1>
+          <p style="color: rgba(255,255,255,1); margin-top: 0.3rem; font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 3px; font-weight: 900; text-shadow: 0 2px 8px rgba(0,0,0,0.9);">SYSTEM_V3 // SELECT_MODULE_TO_EXPAND</p>
         </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
-          
-          <!-- Site Config Form -->
-          <div class="post-card" style="padding: 2rem; cursor: default;">
-            <h3>全局设置 / SETTINGS</h3>
-            <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-              <div>
-                <label style="font-size: 0.8rem; color: #888;">网站标题</label>
-                <input id="cfg-siteTitle" value="${config.siteTitle}" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
-              </div>
-              <div>
-                <label style="font-size: 0.8rem; color: #888;">侧边栏头像 URL</label>
-                <input id="cfg-avatarUrl" value="${config.avatarUrl}" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
-              </div>
-              <div>
-                <label style="font-size: 0.8rem; color: #888;">侧边栏作者名</label>
-                <input id="cfg-authorName" value="${config.authorName}" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
-              </div>
-              <div>
-                <label style="font-size: 0.8rem; color: #888;">侧边栏角色/头衔</label>
-                <input id="cfg-authorRole" value="${config.authorRole}" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
-              </div>
-              <div>
-                <label style="font-size: 0.8rem; color: #888;">侧边栏简介</label>
-                <textarea id="cfg-authorDesc" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">${config.authorDesc}</textarea>
-              </div>
-              <div>
-                <label style="font-size: 0.8rem; color: #888;">公告板 (支持HTML)</label>
-                <textarea id="cfg-announcement" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; min-height: 80px;">${config.announcement}</textarea>
-              </div>
-              <div>
-                <label style="font-size: 0.8rem; color: #888;">首页 Banner 图片</label>
-                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; align-items: center;">
-                  <input type="file" id="cfg-banner-upload" accept="image/*" style="display: none;">
-                  <button id="cfg-banner-upload-btn" class="action-btn" style="padding: 0.5rem 1rem; background: #e2e8f0; color: #334155; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">上传背景大图</button>
-                  <input id="cfg-bannerImageUrl" value="${config.bannerImageUrl || ''}" placeholder="或直接输入网络图片 URL，留空则使用默认渐变色" style="flex: 1; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
-                </div>
-              </div>
-              <div>
-                <label style="font-size: 0.8rem; color: #888;">首页副标题</label>
-                <input id="cfg-bannerSubtitle" value="${config.bannerSubtitle || ''}" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
-              </div>
-              <div>
-                <label style="font-size: 0.8rem; color: #888;">全局动态视频/图片背景</label>
-                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; align-items: center;">
-                  <input type="file" id="cfg-global-bg-upload" accept="image/*,video/mp4,video/webm" style="display: none;">
-                  <button id="cfg-global-bg-upload-btn" class="action-btn" style="padding: 0.5rem 1rem; background: #e2e8f0; color: #334155; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">上传全局壁纸</button>
-                  <input id="cfg-globalBackgroundUrl" value="${config.globalBackgroundUrl || ''}" placeholder="URL，留空则不显示" style="flex: 1; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;">
-                </div>
-              </div>
-              <button id="save-config-btn" class="action-btn" style="padding: 0.8rem; background: var(--theme-primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">保存站点设置</button>
-            </div>
-
-            <!-- Page & Navigation Management -->
-            <div style="margin-top: 3rem; border-top: 2px dashed #eee; padding-top: 2rem;">
-              <h3 style="margin-bottom: 1rem;">页面与导航 / NAV & PAGES</h3>
-              
-              <div style="margin-bottom: 2rem;">
-                <label style="font-size: 0.8rem; color: #888; display: block; margin-bottom: 0.5rem;">编辑「关于我」内容 (Markdown)</label>
-                <textarea id="cfg-aboutContent" style="width: 100%; padding: 0.8rem; border: 1px solid #ccc; border-radius: 8px; min-height: 200px; font-family: var(--font-mono); font-size: 0.9rem;">${config.aboutContent || ''}</textarea>
-              </div>
-
-              <div>
-                <label style="font-size: 0.8rem; color: #888; display: block; margin-bottom: 0.5rem;">配置侧边栏导航 (JSON 格式)</label>
-                <div style="background: #f1f5f9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                  <p style="font-size: 0.7rem; color: #64748b; margin-bottom: 1rem;">格式：[{"title": "名称", "view": "路由ID"}]<br>可用路由：home, articles, about, photowall, profile, login, admin</p>
-                  <textarea id="cfg-navLinks" style="width: 100%; padding: 0.8rem; border: 1px solid #cbd5e1; border-radius: 4px; font-family: var(--font-mono); font-size: 0.85rem; min-height: 100px;">${config.navLinks || ''}</textarea>
-                </div>
-              </div>
-              
-              <button id="save-pages-btn" class="action-btn" style="width: 100%; padding: 0.8rem; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">更新页面与导航</button>
-            </div>
-          </div>
-
-          <!-- Right Column: Management -->
-          <div style="display: flex; flex-direction: column; gap: 2rem;">
-            
-            <!-- Articles Management -->
-            <div class="post-card" style="padding: 2rem; cursor: default;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h3>文章管理 / POSTS</h3>
-                <button id="new-post-btn" class="action-btn" style="padding: 0.5rem 1rem; background: #2ed573; color: white; border: none; border-radius: 4px; cursor: pointer;">+ 新文章</button>
-              </div>
-              
-              <div id="admin-post-list" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-                ${articles.map(a => `
-                  <div style="padding: 1rem; border: 1px solid #eee; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                      <strong style="display: block; font-size: 1.1rem;">${a.title}</strong>
-                      <span style="font-size: 0.8rem; color: #888;">${a.date} | ${a.category}</span>
-                    </div>
-                    <div>
-                      <button class="edit-post-btn action-btn" data-id="${a.id}" style="padding: 0.3rem 0.6rem; background: #2ed573; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-right: 0.5rem;">编辑</button>
-                      <button class="delete-post-btn action-btn" data-id="${a.id}" style="padding: 0.3rem 0.6rem; background: #ff4757; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">删除</button>
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-
-              <!-- Enhanced Editor Overlay -->
-              <div id="editor-overlay" style="display: none; margin-top: 2rem; border-top: 2px solid #e2e8f0; padding-top: 2rem;">
-                <h4 id="editor-title-label" style="margin-bottom: 1.5rem; color: var(--theme-primary);">✏️ 编辑文章 / EDIT POST</h4>
-                <input type="hidden" id="ed-id" value="">
-                <div style="margin-bottom: 1rem;">
-                  <label style="font-size: 0.75rem; color: #64748b; font-weight: 600;">📌 文章标题</label>
-                  <input id="ed-title" placeholder="输入文章标题..." style="width: 100%; padding: 0.8rem; margin-top: 0.3rem; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: bold; font-size: 1.1rem;">
-                </div>
-                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                  <div style="flex: 1;"><label style="font-size: 0.75rem; color: #64748b; font-weight: 600;">📂 分类</label><input id="ed-category" placeholder="如：技术, 生活" style="width: 100%; padding: 0.5rem; margin-top: 0.3rem; border: 1px solid #cbd5e1; border-radius: 8px;"></div>
-                  <div style="flex: 1;"><label style="font-size: 0.75rem; color: #64748b; font-weight: 600;">🏷️ 标签</label><input id="ed-tag" placeholder="如：Vue, 教程" style="width: 100%; padding: 0.5rem; margin-top: 0.3rem; border: 1px solid #cbd5e1; border-radius: 8px;"></div>
-                </div>
-                <div style="margin-bottom: 1rem;"><label style="font-size: 0.75rem; color: #64748b; font-weight: 600;">🖼️ 封面图 URL（可选）</label><input id="ed-thumbnail" placeholder="粘贴封面图片的网络链接" style="width: 100%; padding: 0.8rem; margin-top: 0.3rem; border: 1px solid #cbd5e1; border-radius: 8px;"></div>
-                <div style="margin-bottom: 1rem;"><label style="font-size: 0.75rem; color: #64748b; font-weight: 600;">📝 文章摘要</label><textarea id="ed-excerpt" placeholder="简短概括文章内容，将展示在文章列表中..." style="width: 100%; padding: 0.8rem; margin-top: 0.3rem; border: 1px solid #cbd5e1; border-radius: 8px; min-height: 60px;"></textarea></div>
-                <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-                  <label style="font-size: 0.75rem; color: #64748b; font-weight: 600;">📄 正文内容（支持 Markdown）</label>
-                  <div style="display: flex; gap: 0.5rem;">
-                    <input type="file" id="ed-md-import" accept=".md,.markdown,.txt" style="display: none;">
-                    <button id="ed-import-md-btn" class="action-btn" style="padding: 0.3rem 0.8rem; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">📥 导入 .md</button>
-                    <input type="file" id="ed-img-upload" accept="image/*" style="display: none;">
-                    <button id="ed-insert-img-btn" class="action-btn" style="padding: 0.3rem 0.8rem; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">🖼️ 插入图片</button>
-                  </div>
-                </div>
-                <textarea id="ed-content" placeholder="在此书写正文...&#10;&#10;支持 Markdown 语法：&#10;# 标题  **加粗**  *斜体*&#10;![图片描述](图片链接)&#10;[链接文字](URL)" style="width: 100%; padding: 0.8rem; min-height: 300px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.6;"></textarea>
-                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                  <button id="save-post-btn" class="action-btn" style="flex: 1; padding: 0.8rem; background: var(--fawang-gradient); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(94,114,228,0.3);">💾 保存 / SAVE</button>
-                  <button id="cancel-post-btn" class="action-btn" style="padding: 0.8rem 1.5rem; background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer;">取消</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Photo Wall Designer Section -->
-            <div class="post-card" style="width: 100%; padding: 2rem; cursor: default;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <div>
-                  <h3 style="color: var(--theme-primary);">照片墙设计师 / GALLERY DESIGNER</h3>
-                  <p style="font-size: 0.75rem; color: #888; margin-top: 0.2rem;">拖动图片来调整它们在前台的显示顺序。顺序将自动保存。</p>
-                </div>
-              </div>
-              <div id="gallery-designer-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 1rem; min-height: 100px; border: 2px dashed #eee; padding: 1rem; border-radius: 12px;">
-                 <!-- Draggable images here -->
-              </div>
-            </div>
-
-            <!-- Asset Library Section (Dedicated) -->
-            <div class="post-card" style="width: 100%; padding: 2rem; cursor: default;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <div>
-                  <h3 style="color: #475569;">全量资产库 / ASSET LIBRARY</h3>
-                  <p style="font-size: 0.75rem; color: #888; margin-top: 0.2rem;">支持批量上传和拖拽上传。点击缩略图可放大预览。</p>
-                </div>
-                <div>
-                  <input type="file" id="asset-upload-input" accept="image/*,video/mp4,video/webm" multiple style="display: none;">
-                  <button id="upload-asset-btn" class="action-btn" style="padding: 0.6rem 1.2rem; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">+ 批量上传</button>
-                </div>
-              </div>
-              <div id="asset-drop-zone" style="position: relative; border: 2px dashed transparent; border-radius: 12px; transition: all 0.3s;">
-                <div id="asset-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; min-height: 60px;">
-                  <!-- Assets list -->
-                </div>
-              </div>
-            </div>
-
-            <!-- User Management Section -->
-            <div class="post-card" style="width: 100%; padding: 2rem; cursor: default;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <div>
-                  <h3 style="color: #475569;">用户管理 / USER MANAGEMENT</h3>
-                  <p style="font-size: 0.75rem; color: #888; margin-top: 0.2rem;">审核新用户的注册申请或管理已注册的用户。</p>
-                </div>
-              </div>
-              <div id="user-management-list" style="display: flex; flex-direction: column; gap: 1rem;">
-                <!-- Users list here -->
-                <div style="padding: 2rem; text-align: center; color: #94a3b8;">正在加载用户列表...</div>
-              </div>
-            </div>
-
-            <!-- Chat Moderation Section -->
-            <div class="post-card" style="width: 100%; padding: 2rem; cursor: default;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <div>
-                  <h3 style="color: #ef4444;">对话审计与清理 / CHAT MODERATION</h3>
-                  <p style="font-size: 0.75rem; color: #888; margin-top: 0.2rem;">根据时间段或特定用户对聊天记录进行物理清除。</p>
-                </div>
-              </div>
-
-              <!-- Time Range Filter -->
-              <div style="display: flex; gap: 1rem; margin-bottom: 2rem; padding: 1rem; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; align-items: center;">
-                <span style="font-size: 0.8rem; font-weight: bold; color: #475569;">时间范围：</span>
-                <input type="datetime-local" id="chat-del-start" style="padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem;">
-                <span style="color: #94a3b8;">至</span>
-                <input type="datetime-local" id="chat-del-end" style="padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem;">
-              </div>
-
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                <div style="padding: 1.5rem; border: 1px solid #fee2e2; background: #fffafb; border-radius: 12px;">
-                  <h4 style="margin-bottom: 0.5rem; color: #ef4444; text-align: center;">版聊定向清理</h4>
-                  <p style="font-size: 0.75rem; color: #991b1b; opacity: 0.7; margin-bottom: 1rem; text-align: center;">删除上述时间段内的所有公共对话记录</p>
-                  <button id="clear-global-chat-btn" class="action-btn" style="width: 100%; background: #ef4444; color: white; padding: 0.6rem; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;">清空选中时间段版聊</button>
-                </div>
-                
-                <div style="padding: 1.5rem; border: 1px solid #e2e8f0; background: #f1f5f9; border-radius: 12px;">
-                  <h4 style="margin-bottom: 1rem; color: #475569; text-align: center;">特定双方私聊清理</h4>
-                  <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                    <input type="number" id="chat-del-user-a" placeholder="User A ID" style="flex: 1; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem;">
-                    <input type="number" id="chat-del-user-b" placeholder="User B ID" style="flex: 1; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem;">
-                  </div>
-                  <button id="clear-targeted-private-btn" class="action-btn" style="width: 100%; background: #64748b; color: white; padding: 0.6rem; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;">清空选定双方私聊</button>
-                </div>
-              </div>
-
-              <div style="margin-top: 1.5rem; text-align: center;">
-                 <button id="clear-all-private-chat-btn" style="background: none; border: none; color: #ef4444; font-size: 0.75rem; cursor: pointer; text-decoration: underline;">一键清空系统内所有私聊(含时间过滤)</button>
-              </div>
-            </div>
-          </div>
+        <div style="display: flex; gap: 1rem;">
+          <button id="close-admin-btn" style="padding: 0.8rem 1.8rem; background: rgba(255,255,255,0.25); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; cursor: pointer; backdrop-filter: blur(20px); font-weight: 800; transition: all 0.3s; text-shadow: 0 2px 4px rgba(0,0,0,0.3); box-shadow: 0 4px 15px rgba(0,0,0,0.2);">返回主页</button>
+          <button id="logout-btn" style="padding: 0.8rem 1.8rem; background: #ff4757; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 800; box-shadow: 0 4px 15px rgba(255,71,87,0.4);">注销</button>
         </div>
       </div>
+
+      <!-- Tile Matrix Flow -->
+      <div id="admin-matrix-container" class="ba-scrollbar" style="flex: 1; display: flex; flex-flow: column wrap; gap: 1.5rem; padding: 1rem 4rem 4rem 4rem; overflow-x: auto; width: 100%; align-content: flex-start; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);">
+        
+        <!-- Tile 1: Site Identity -->
+        <div class="admin-tile" data-lenis-prevent data-module="identity" style="width: 280px; height: 200px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+           <div class="tile-preview">
+              <div style="font-size: 2.5rem; margin-bottom: 1rem;">🆔</div>
+              <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">基础身份</h3>
+              <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.8rem;">修改网站名称、作者简介...</p>
+           </div>
+           <div class="tile-full-content" style="display: none; opacity: 0; transition: opacity 0.4s;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                 <h2 style="margin:0; color: #1e293b;">基础身份 / IDENTITY</h2>
+                 <div style="display: flex; gap: 1rem;">
+                    <button class="save-card-btn action-btn" data-type="identity" style="padding: 0.6rem 1.5rem; background: var(--theme-primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">保存修改</button>
+                    <button class="close-tile-btn" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 12px; cursor: pointer;">返回矩阵</button>
+                 </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                 <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div class="input-group">
+                       <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">网站标题</label>
+                       <input id="cfg-siteTitle" value="${config.siteTitle}" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b; font-size: 1.1rem; font-weight: 600;">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                       <div>
+                          <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">作者</label>
+                          <input id="cfg-authorName" value="${config.authorName}" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b;">
+                       </div>
+                       <div>
+                          <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">头衔</label>
+                          <input id="cfg-authorRole" value="${config.authorRole}" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b;">
+                       </div>
+                    </div>
+                 </div>
+                 <div>
+                    <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">个人简介</label>
+                    <textarea id="cfg-authorDesc" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b; min-height: 180px; resize: none; line-height: 1.6;">${config.authorDesc}</textarea>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        <!-- Tile 2: Visuals -->
+        <div class="admin-tile" data-lenis-prevent data-module="visuals" style="width: 280px; height: 200px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+           <div class="tile-preview">
+              <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎨</div>
+              <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">视觉呈现</h3>
+              <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.8rem;">背景大图、全局动态壁纸...</p>
+           </div>
+           <div class="tile-full-content" style="display: none; opacity: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                 <h2 style="margin:0; color: #1e293b;">视觉呈现 / VISUALS</h2>
+                 <div style="display: flex; gap: 1rem;">
+                    <button class="save-card-btn action-btn" data-type="visuals" style="padding: 0.6rem 1.5rem; background: #2ed573; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">保存</button>
+                    <button class="close-tile-btn" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 12px; cursor: pointer;">返回</button>
+                 </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                 <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div>
+                       <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">头像链接</label>
+                       <input id="cfg-avatarUrl" value="${config.avatarUrl}" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b;">
+                    </div>
+                    <div>
+                       <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">首页 Banner (URL/Upload)</label>
+                       <div style="display: flex; gap: 0.8rem;">
+                          <input id="cfg-bannerImageUrl" value="${config.bannerImageUrl || ''}" style="flex: 1; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b;">
+                          <button id="cfg-banner-upload-btn" style="padding: 0 1.2rem; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 15px; cursor: pointer;">↑</button>
+                          <input type="file" id="cfg-banner-upload" accept="image/*" style="display: none;">
+                       </div>
+                    </div>
+                 </div>
+                 <div>
+                    <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">全局动态壁纸 (URL/Upload)</label>
+                    <div style="display: flex; gap: 0.8rem; margin-bottom: 1.5rem;">
+                       <input id="cfg-globalBackgroundUrl" value="${config.globalBackgroundUrl || ''}" style="flex: 1; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b;">
+                       <button id="cfg-global-bg-upload-btn" style="padding: 0 1.2rem; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 15px; cursor: pointer;">↑</button>
+                       <input type="file" id="cfg-global-bg-upload" accept="image/*,video/mp4,video/webm" style="display: none;">
+                    </div>
+                    <div>
+                       <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">首页副标题</label>
+                       <input id="cfg-bannerSubtitle" value="${config.bannerSubtitle || ''}" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b;">
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        <!-- Tile 3: Media Center (Gallery + Assets) -->
+        <div class="admin-tile" data-lenis-prevent data-module="media" style="width: 580px; height: 415px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+           <div class="tile-preview">
+              <div style="font-size: 2.5rem; margin-bottom: 1rem;">🖼️</div>
+              <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">媒体中心</h3>
+              <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.8rem;">照片墙设计 + 资产管理库...</p>
+           </div>
+           <div class="tile-full-content" style="display: none; opacity: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                 <h2 style="margin:0; color: #1e293b;">媒体中心 / MEDIA_CENTER</h2>
+                 <div style="display: flex; gap: 1rem;">
+                    <button id="upload-asset-btn" style="padding: 0.6rem 1.5rem; background: #3742fa; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">+ 上传素材</button>
+                    <button class="close-tile-btn" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 12px; cursor: pointer;">返回矩阵</button>
+                    <input type="file" id="asset-upload-input" multiple style="display: none;">
+                 </div>
+              </div>
+              
+              <div style="display: flex; gap: 2rem; height: calc(100% - 100px); min-height: 0;">
+                 <!-- Left: Gallery Designer -->
+                 <div style="flex: 1; display: flex; flex-direction: column; gap: 1rem; min-width: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                       <h4 style="margin:0; color: #1e293b; font-size: 0.95rem; font-weight: 800;">1. 照片墙设计 / DESIGNER</h4>
+                       <div style="display: flex; gap: 0.5rem; align-items: center;">
+                          <button id="clear-gallery-btn" style="padding: 2px 8px; background: #fee2e2; color: #ef4444; border: none; border-radius: 4px; font-size: 0.6rem; cursor: pointer; font-weight: bold;">清空全部</button>
+                          <span style="font-size: 0.7rem; color: #94a3b8;">拖拽素材至此排版</span>
+                       </div>
+                    </div>
+                    <div id="gallery-designer-grid" class="ba-scrollbar" style="flex: 1; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 20px; padding: 1.5rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); grid-auto-rows: min-content; gap: 1.2rem; overflow-y: auto;">
+                       <!-- Gallery items -->
+                    </div>
+                 </div>
+
+                 <!-- Right: Asset Library -->
+                 <div style="flex: 1; display: flex; flex-direction: column; gap: 1rem; min-width: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                       <h4 style="margin:0; color: #1e293b; font-size: 0.95rem; font-weight: 800;">2. 媒体资产库 / LIBRARY</h4>
+                       <span style="font-size: 0.7rem; color: #94a3b8;">源文件管理区</span>
+                    </div>
+                    <div id="asset-drop-zone" class="ba-scrollbar" style="flex: 1; background: #f8fafc; border: 2px solid #f1f5f9; border-radius: 20px; padding: 1.5rem; overflow-y: auto;">
+                       <div id="asset-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1.2rem;">
+                          <!-- Assets -->
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        <!-- Tile 4: Home Sections -->
+        <div class="admin-tile" data-lenis-prevent data-module="home-mid" style="width: 280px; height: 200px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+           <div class="tile-preview">
+              <div style="font-size: 2.5rem; margin-bottom: 1rem;">🏠</div>
+              <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">首页配置</h3>
+              <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.8rem;">板块标题、公告栏内容...</p>
+           </div>
+           <div class="tile-full-content" style="display: none; opacity: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                 <h2 style="margin:0; color: #1e293b;">首页板块 / HOME_CONFIG</h2>
+                 <div style="display: flex; gap: 1rem;">
+                    <button class="save-card-btn action-btn" data-type="home-mid" style="padding: 0.6rem 1.5rem; background: #ffa502; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">保存</button>
+                    <button class="close-tile-btn" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 12px; cursor: pointer;">返回</button>
+                 </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                 <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div>
+                       <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">中段板块标题</label>
+                       <input id="cfg-homeMidTitle" value="${config.homeMidTitle || ''}" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b;">
+                    </div>
+                    <div>
+                       <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">中段描述正文</label>
+                       <textarea id="cfg-homeMidContent" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b; min-height: 150px; resize: none;">${config.homeMidContent || ''}</textarea>
+                    </div>
+                 </div>
+                 <div>
+                    <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">公告栏内容 (Sidebar)</label>
+                    <textarea id="cfg-announcement" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b; min-height: 230px; resize: none;">${config.announcement}</textarea>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        <!-- Tile 5: Navigation -->
+        <div class="admin-tile" data-lenis-prevent data-module="navigation" style="width: 280px; height: 200px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+           <div class="tile-preview">
+              <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔗</div>
+              <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">导航与页面</h3>
+              <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.8rem;">JSON 导航链、About 页面...</p>
+           </div>
+           <div class="tile-full-content" style="display: none; opacity: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                 <h2 style="margin:0; color: #1e293b;">导航与页面 / NAV_PAGES</h2>
+                 <div style="display: flex; gap: 1rem;">
+                    <button id="save-pages-btn" style="padding: 0.6rem 1.5rem; background: #3742fa; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">应用更新</button>
+                    <button class="close-tile-btn" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 12px; cursor: pointer;">返回</button>
+                 </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+                 <div>
+                    <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">JSON 导航配置</label>
+                    <textarea id="cfg-navLinks" style="width: 100%; padding: 1rem; background: #1e293b; border: none; border-radius: 15px; color: #55efc4; font-family: var(--font-mono); font-size: 0.9rem; min-height: 300px;">${config.navLinks || ''}</textarea>
+                 </div>
+                 <div>
+                    <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">关于页面 Markdown</label>
+                    <textarea id="cfg-aboutContent" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b; min-height: 300px;">${config.aboutContent || ''}</textarea>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        <!-- Tile 6: User Management -->
+        <div class="admin-tile" data-lenis-prevent data-module="users" style="width: 280px; height: 200px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+           <div class="tile-preview">
+              <div style="font-size: 2.5rem; margin-bottom: 1rem;">👥</div>
+              <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">用户管理</h3>
+              <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.8rem;">成员审批、权限修改...</p>
+           </div>
+           <div class="tile-full-content" style="display: none; opacity: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                 <h2 style="margin:0; color: #1e293b;">成员管理 / USER_MANAGEMENT</h2>
+                 <button class="close-tile-btn" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 12px; cursor: pointer;">返回矩阵</button>
+              </div>
+              <div id="user-management-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; max-height: 500px; overflow-y: auto; padding: 1rem; background: #f8fafc; border-radius: 20px;">
+                 <!-- User list -->
+              </div>
+           </div>
+        </div>
+
+        <!-- Tile 7: Article Library (Large Preview) -->
+        <div class="admin-tile" data-lenis-prevent data-module="articles" style="width: 580px; height: 415px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+           <div class="tile-preview">
+              <div style="font-size: 2.5rem; margin-bottom: 1rem;">📄</div>
+              <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">文稿管理中心</h3>
+              <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.8rem;">发布新章、编辑或删除已有文章...</p>
+           </div>
+           <div class="tile-full-content" style="display: none; opacity: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                 <h2 id="editor-title-label" style="margin:0; color: #1e293b;">稿件库 / ARTICLES</h2>
+                 <div style="display: flex; gap: 1rem;">
+                    <button id="new-post-btn" style="padding: 0.6rem 1.5rem; background: #2ed573; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">+ 撰写新章</button>
+                    <button class="close-tile-btn" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 12px; cursor: pointer;">返回矩阵</button>
+                 </div>
+              </div>
+              
+              <div style="height: calc(100% - 80px); overflow-y: auto; padding-right: 1rem;" class="ba-scrollbar">
+                <div id="admin-post-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem; background: #f8fafc; padding: 1rem; border-radius: 20px; margin-bottom: 2rem;">
+                  ${articles.map(a => `
+                    <div style="padding: 1.2rem; background: white; border: 1px solid #f1f5f9; border-radius: 15px; display: flex; justify-content: space-between; align-items: center;">
+                      <div>
+                        <strong style="display: block; font-size: 1rem; color: #1e293b;">${a.title}</strong>
+                        <span style="font-size: 0.75rem; color: #94a3b8; font-family: var(--font-mono);">${a.date} | ${a.category}</span>
+                      </div>
+                      <div style="display: flex; gap: 0.6rem;">
+                        <button class="edit-post-btn" data-id="${a.id}" style="padding: 0.4rem 1rem; background: #f1f5f9; color: #475569; border: none; border-radius: 8px; cursor: pointer; font-size: 0.75rem; font-weight: bold;">编辑</button>
+                        <button class="delete-post-btn" data-id="${a.id}" style="padding: 0.4rem 1rem; background: #fff1f2; color: #ff4757; border: none; border-radius: 8px; cursor: pointer; font-size: 0.75rem;">删除</button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+
+                <!-- Editor Overlay (Persistent in scroll) -->
+                <div id="editor-overlay" style="display: none; border-top: 2px dashed #f1f5f9; padding-top: 2rem; padding-bottom: 2rem;">
+                   <input type="hidden" id="ed-id">
+                   <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+                      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
+                         <input id="ed-title" placeholder="文章标题" style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 12px; font-weight: bold; font-size: 1.1rem;">
+                         <input id="ed-category" placeholder="分类" style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 12px;">
+                         <input id="ed-tag" placeholder="标签" style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 12px;">
+                      </div>
+                      <div>
+                         <label style="font-size: 0.8rem; color: #64748b; font-weight: bold; margin-bottom: 0.5rem; display: block;">文章头图 (Cover Image URL)</label>
+                         <input id="ed-thumbnail" placeholder="https://..." style="width: 100%; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 12px;">
+                      </div>
+                      <div>
+                         <label style="font-size: 0.8rem; color: #64748b; font-weight: bold; margin-bottom: 0.5rem; display: block;">文章摘要</label>
+                         <textarea id="ed-excerpt" style="width: 100%; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 12px; min-height: 80px; resize: none;"></textarea>
+                      </div>
+                      <div style="display: flex; gap: 1rem; align-items: center; background: #f8fafc; padding: 1rem; border-radius: 12px;">
+                         <button id="ed-insert-img-btn" style="padding: 0.6rem 1.2rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">🖼️ 插入图片</button>
+                         <button id="ed-preview-toggle-btn" style="padding: 0.6rem 1.2rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.85rem; cursor: pointer;">👁️ 预览模式</button>
+                         <button id="ed-import-md-btn" style="padding: 0.6rem 1.2rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.85rem; cursor: pointer;">📄 导入 Markdown</button>
+                         <input type="file" id="ed-img-upload" accept="image/*" style="display: none;">
+                         <input type="file" id="ed-md-import" accept=".md,.txt" style="display: none;">
+                      </div>
+                      <div id="editor-main-container" style="position: relative; min-height: 500px;">
+                         <textarea id="ed-content" placeholder="在此输入正文 (Markdown)..." style="width: 100%; min-height: 500px; padding: 1.5rem; border: 1px solid #e2e8f0; border-radius: 15px; font-family: var(--font-mono); line-height: 1.7; transition: all 0.3s;"></textarea>
+                         <div id="ed-preview-area" class="ba-scrollbar markdown-body" style="display: none; width: 100%; height: 500px; padding: 1.5rem; border: 1px solid var(--theme-primary); border-radius: 15px; background: white; overflow-y: auto;"></div>
+                      </div>
+                      <div style="display: flex; gap: 1rem; position: sticky; bottom: 0; background: white; padding: 1rem 0; border-top: 1px solid #eee;">
+                         <button id="save-post-btn" style="flex: 1; padding: 1.2rem; background: #1e293b; color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">立即发布 / UPDATE</button>
+                         <button id="cancel-post-btn" style="padding: 1.2rem 2.5rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 15px; cursor: pointer;">取消</button>
+                      </div>
+                   </div>
+                </div>
+              </div>
+           </div>
+        </div>
+
+        <!-- Tile 8: System Maintenance -->
+        <div class="admin-tile" data-lenis-prevent data-module="system" style="width: 280px; height: 200px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+           <div class="tile-preview">
+              <div style="font-size: 2.5rem; margin-bottom: 1rem;">🛡️</div>
+              <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">系统运维</h3>
+              <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.8rem;">清除缓存、聊天记录物理清除...</p>
+           </div>
+           <div class="tile-full-content" style="display: none; opacity: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                 <h2 style="margin:0; color: #1e293b;">系统运维 / MAINTENANCE</h2>
+                 <button class="close-tile-btn" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 12px; cursor: pointer;">返回矩阵</button>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                 <div style="padding: 2rem; background: #fff1f2; border-radius: 24px;">
+                    <h4 style="color: #be123c; margin-top: 0;">清空版聊数据</h4>
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                       <input type="datetime-local" id="chat-del-start" style="flex:1; padding: 0.8rem; border-radius: 10px; border: 1px solid #fecaca;">
+                       <input type="datetime-local" id="chat-del-end" style="flex:1; padding: 0.8rem; border-radius: 10px; border: 1px solid #fecaca;">
+                    </div>
+                    <button id="clear-global-chat-btn" style="width: 100%; padding: 1rem; background: #ff4757; color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer;">物理清除</button>
+                 </div>
+                 <div style="padding: 2rem; background: #f8fafc; border-radius: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <button id="clear-all-private-chat-btn" style="width: 100%; padding: 1.5rem; background: #1e293b; color: white; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 1.1rem;">一键清除全域私聊数据</button>
+                    <p style="margin-top: 1rem; color: #94a3b8; font-size: 0.8rem;">* 此操作不可逆，请谨慎操作</p>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+      </div>
     </div>
+
+    <style>
+      #admin-matrix-container {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.3) transparent;
+      }
+      #admin-matrix-container::-webkit-scrollbar {
+        height: 8px;
+      }
+      #admin-matrix-container::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.3);
+        border-radius: 10px;
+      }
+      
+      .admin-tile {
+        break-inside: avoid;
+        user-select: none;
+      }
+      
+      .admin-tile:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+      }
+      
+      /* Focus State Logic */
+      .has-focus #admin-header {
+        opacity: 0.1;
+        transform: translateY(-20px);
+        pointer-events: none;
+      }
+      
+      .has-focus .admin-tile:not(.focused) {
+        opacity: 0.05;
+        filter: blur(20px);
+        transform: scale(0.7);
+        pointer-events: none;
+      }
+      
+      .admin-tile.focused {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 90vw !important;
+        height: 90vh !important;
+        max-width: 1400px !important;
+        z-index: 1000 !important;
+        cursor: default !important;
+        background: white !important;
+        box-shadow: 0 100px 200px rgba(0,0,0,0.6) !important;
+        padding: 3rem !important;
+        border: 2px solid var(--theme-primary) !important;
+        overflow-y: auto !important;
+      }
+      
+      .admin-tile.focused .tile-preview {
+        display: none;
+      }
+      
+      .admin-tile.focused .tile-full-content {
+        display: block !important;
+        opacity: 1 !important;
+        height: 100%;
+      }
+      
+      .admin-tile input:focus, .admin-tile textarea:focus {
+        border-color: var(--theme-primary) !important;
+        background: white !important;
+        box-shadow: 0 0 0 4px rgba(94,114,228,0.1);
+        outline: none;
+      }
+    </style>
   `;
+
+  // --- Logic Extensions ---
+  const matrixContainer = document.getElementById('admin-matrix-container');
+  const viewport = document.getElementById('admin-viewport');
+
+  // 1. Horizontal Scroll via Mouse Wheel (Only in Matrix mode)
+  window.addEventListener('wheel', (e) => {
+    // If a tile is focused, the browser should handle vertical scrolling naturally
+    // thanks to data-lenis-prevent. We only intervene if we're in Matrix mode.
+    if (viewport?.classList.contains('has-focus')) return; 
+    
+    const matrix = document.getElementById('admin-matrix-container');
+    if (!matrix) return;
+
+    // Check if we are over the matrix
+    const isOverMatrix = (e.target as HTMLElement).closest('#admin-matrix-container');
+    if (isOverMatrix) {
+       e.preventDefault();
+       matrix.scrollLeft += e.deltaY;
+    }
+  }, { passive: false });
+  
+  // 2. Focus Toggle Logic
+  document.querySelectorAll('.admin-tile').forEach(tile => {
+    tile.addEventListener('click', (e) => {
+      if (tile.classList.contains('focused')) {
+        const target = e.target as HTMLElement;
+        if (target.closest('.close-tile-btn')) {
+           tile.classList.remove('focused');
+           viewport?.classList.remove('has-focus');
+           if (matrixContainer) matrixContainer.style.overflowX = 'auto'; 
+        }
+        return;
+      }
+      tile.classList.add('focused');
+      viewport?.classList.add('has-focus');
+      if (matrixContainer) matrixContainer.style.overflowX = 'hidden'; 
+    });
+  });
 
   // Events
   document.getElementById('logout-btn')?.addEventListener('click', () => {
@@ -423,22 +636,32 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
   });
 
   // Save Config
-  document.getElementById('save-config-btn')?.addEventListener('click', () => {
-    const newConfig = {
-      ...BlogStore.getConfig(),
-      siteTitle: (document.getElementById('cfg-siteTitle') as HTMLInputElement).value,
-      bannerImageUrl: (document.getElementById('cfg-bannerImageUrl') as HTMLInputElement).value,
-      bannerSubtitle: (document.getElementById('cfg-bannerSubtitle') as HTMLInputElement).value,
-      globalBackgroundUrl: (document.getElementById('cfg-globalBackgroundUrl') as HTMLInputElement).value,
-      avatarUrl: (document.getElementById('cfg-avatarUrl') as HTMLInputElement).value,
-      authorName: (document.getElementById('cfg-authorName') as HTMLInputElement).value,
-      authorRole: (document.getElementById('cfg-authorRole') as HTMLInputElement).value,
-      authorDesc: (document.getElementById('cfg-authorDesc') as HTMLTextAreaElement).value,
-      announcement: (document.getElementById('cfg-announcement') as HTMLTextAreaElement).value,
-    };
-    BlogStore.saveConfig(newConfig).then(() => {
+  // Delegated Save Config for Cards
+  document.querySelectorAll('.save-card-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const type = (btn as HTMLElement).getAttribute('data-type');
+      const currentConfig = BlogStore.getConfig();
+      let newConfig = { ...currentConfig };
+
+      if (type === 'identity') {
+        newConfig.siteTitle = (document.getElementById('cfg-siteTitle') as HTMLInputElement).value;
+        newConfig.authorName = (document.getElementById('cfg-authorName') as HTMLInputElement).value;
+        newConfig.authorRole = (document.getElementById('cfg-authorRole') as HTMLInputElement).value;
+        newConfig.authorDesc = (document.getElementById('cfg-authorDesc') as HTMLTextAreaElement).value;
+      } else if (type === 'visuals') {
+        newConfig.avatarUrl = (document.getElementById('cfg-avatarUrl') as HTMLInputElement).value;
+        newConfig.bannerImageUrl = (document.getElementById('cfg-bannerImageUrl') as HTMLInputElement).value;
+        newConfig.globalBackgroundUrl = (document.getElementById('cfg-globalBackgroundUrl') as HTMLInputElement).value;
+        newConfig.bannerSubtitle = (document.getElementById('cfg-bannerSubtitle') as HTMLInputElement).value;
+      } else if (type === 'home-mid') {
+        newConfig.homeMidTitle = (document.getElementById('cfg-homeMidTitle') as HTMLInputElement).value;
+        newConfig.homeMidContent = (document.getElementById('cfg-homeMidContent') as HTMLTextAreaElement).value;
+        newConfig.announcement = (document.getElementById('cfg-announcement') as HTMLTextAreaElement).value;
+      }
+
+      await BlogStore.saveConfig(newConfig);
       hydrateUI();
-      UI.toast('站点设置已保存', 'success');
+      UI.toast('该板块设置已更新', 'success');
     });
   });
 
@@ -466,34 +689,55 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     });
   });
 
-  // Post Management
+  // Post Management: Use delegation for dynamic list
   const editorOverlay = document.getElementById('editor-overlay') as HTMLElement;
+  const postList = document.getElementById('admin-post-list');
   
   document.getElementById('new-post-btn')?.addEventListener('click', () => {
     editorOverlay.style.display = 'block';
-    document.getElementById('editor-title-label')!.textContent = '新文章 / NEW POST';
+    const label = document.getElementById('editor-title-label');
+    if (label) label.textContent = '新文章 / NEW POST';
     // clear fields
     ['ed-id', 'ed-title', 'ed-category', 'ed-tag', 'ed-thumbnail', 'ed-excerpt', 'ed-content'].forEach(id => {
-      (document.getElementById(id) as HTMLInputElement).value = '';
+      const el = document.getElementById(id) as HTMLInputElement;
+      if (el) el.value = '';
     });
   });
 
-  document.querySelectorAll('.edit-post-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const id = (e.target as HTMLElement).getAttribute('data-id');
+  postList?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.edit-post-btn');
+    if (btn) {
+      const id = btn.getAttribute('data-id');
       const article = articles.find(a => a.id === id);
       if (article) {
         editorOverlay.style.display = 'block';
-        document.getElementById('editor-title-label')!.textContent = '编辑文章 / EDIT POST';
-        (document.getElementById('ed-id') as HTMLInputElement).value = article.id;
-        (document.getElementById('ed-title') as HTMLInputElement).value = article.title;
-        (document.getElementById('ed-category') as HTMLInputElement).value = article.category;
-        (document.getElementById('ed-tag') as HTMLInputElement).value = article.tag;
+        const label = document.getElementById('editor-title-label');
+        if (label) label.textContent = '编辑文章 / EDIT POST';
+        (document.getElementById('ed-id') as HTMLInputElement).value = article.id || '';
+        (document.getElementById('ed-title') as HTMLInputElement).value = article.title || '';
+        (document.getElementById('ed-category') as HTMLInputElement).value = article.category || '';
+        (document.getElementById('ed-tag') as HTMLInputElement).value = article.tag || '';
         (document.getElementById('ed-thumbnail') as HTMLInputElement).value = article.thumbnailUrl || '';
-        (document.getElementById('ed-excerpt') as HTMLTextAreaElement).value = article.excerpt;
-        (document.getElementById('ed-content') as HTMLTextAreaElement).value = article.content;
+        (document.getElementById('ed-excerpt') as HTMLTextAreaElement).value = article.excerpt || '';
+        (document.getElementById('ed-content') as HTMLTextAreaElement).value = article.content || '';
+        
+        // Scroll to editor
+        editorOverlay.scrollIntoView({ behavior: 'smooth' });
       }
-    });
+    }
+    
+    const delBtn = (e.target as HTMLElement).closest('.delete-post-btn');
+    if (delBtn) {
+       const id = delBtn.getAttribute('data-id');
+       if (id) {
+          UI.confirm('确认删除？').then(ok => {
+             if (ok) {
+                BlogStore.deleteArticle(id);
+                renderAdmin(container, onNavigate);
+             }
+          });
+       }
+    }
   });
 
   document.getElementById('cancel-post-btn')?.addEventListener('click', () => {
@@ -521,18 +765,11 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     
     // Refresh admin view
     renderAdmin(container, onNavigate);
+    UI.toast('文章已保存', 'success');
   });
 
-  // Delete Buttons
-  document.querySelectorAll('.delete-post-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = (e.target as HTMLElement).getAttribute('data-id');
-      if (id && await UI.confirm('确认删除？')) {
-        BlogStore.deleteArticle(id);
-        renderAdmin(container, onNavigate);
-      }
-    });
-  });
+  // Delete buttons logic moved to delegation above
+
 
   // Assets Management
   const loadAssets = async () => {
@@ -554,12 +791,13 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
             : `<img src="${url}" style="width: 100%; height: 120px; object-fit: cover; pointer-events: none;" draggable="false">`;
             
           return `
-            <div class="asset-source-item" draggable="true" data-url="${url}" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; position: relative; cursor: pointer; user-select: none; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='scale(1.03)';this.style.boxShadow='0 4px 15px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+            <div class="asset-source-item" draggable="true" data-url="${url}" style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; position: relative; cursor: pointer; user-select: none; background: #fff; transition: all 0.3s ease;">
               ${previewContent}
-              <div style="padding: 0.4rem 0.5rem; background: #f8f9fa; font-size: 0.65rem; color: #64748b; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                 ${url.split('/').pop()}
+              <div style="padding: 0.6rem; background: #f8fafc; font-size: 0.7rem; color: #64748b; display: flex; flex-direction: column; gap: 0.4rem;">
+                 <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">${url.split('/').pop()}</div>
+                 <button class="copy-asset-url-btn" data-url="${url}" style="padding: 0.3rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.65rem; cursor: pointer; color: var(--theme-primary); font-weight: bold;">复制链接</button>
               </div>
-              <button class="delete-asset-btn" data-url="${url}" style="position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; background: rgba(239,68,68,0.85); color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; line-height: 1; opacity: 0; transition: opacity 0.2s;" onmouseover="event.stopPropagation();this.style.opacity='1'" onmouseout="this.style.opacity='0'">×</button>
+              <button class="delete-asset-btn" data-url="${url}" style="position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; background: rgba(239,68,68,0.9); color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;">×</button>
             </div>
           `;
         }).join('');
@@ -679,6 +917,14 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         }
       });
     });
+
+    document.getElementById('clear-gallery-btn')?.addEventListener('click', async () => {
+       if (await UI.confirm('确定要清空照片墙的所有选定图片吗？')) {
+          grid.innerHTML = '';
+          saveGalleryOrder();
+          loadAssets();
+       }
+    });
   };
 
   const saveGalleryOrder = () => {
@@ -710,11 +956,24 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         e.dataTransfer.effectAllowed = 'copy';
       });
 
-      // Click to preview (but not if clicking delete button)
+      // Click to preview
       item.addEventListener('click', (e) => {
-        if ((e.target as HTMLElement).closest('.delete-asset-btn')) return;
+        const target = e.target as HTMLElement;
+        if (target.closest('.delete-asset-btn') || target.closest('.copy-asset-url-btn')) return;
         const url = (item as HTMLElement).getAttribute('data-url');
         if (url) UI.mediaPreview(url);
+      });
+    });
+
+    document.querySelectorAll('.copy-asset-url-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const url = (btn as HTMLElement).getAttribute('data-url');
+        if (url) {
+          navigator.clipboard.writeText(url).then(() => {
+            UI.toast('链接已复制到剪贴板', 'success');
+          });
+        }
       });
     });
 
@@ -970,21 +1229,50 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     if (!file) return;
     const formData = new FormData();
     formData.append('file', file);
+    
+    UI.toast('图片上传中...', 'info');
     try {
       const apiHost = window.location.hostname;
       const res = await fetch(`http://${apiHost}:3001/api/upload?type=asset`, { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success && data.url) {
         const textarea = document.getElementById('ed-content') as HTMLTextAreaElement;
-        const pos = textarea.selectionStart || textarea.value.length;
-        const imgMd = `\n![${file.name}](${data.url})\n`;
-        textarea.value = textarea.value.slice(0, pos) + imgMd + textarea.value.slice(pos);
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        // Sanitize alt text (remove brackets to avoid Markdown confusion)
+        const safeAlt = file.name.replace(/[\[\]]/g, '');
+        const imgMd = `\n![${safeAlt}](${data.url})\n`;
+        
+        textarea.value = text.substring(0, start) + imgMd + text.substring(end);
         textarea.focus();
-        textarea.selectionStart = textarea.selectionEnd = pos + imgMd.length;
-        UI.toast('图片已插入', 'success');
+        textarea.selectionStart = textarea.selectionEnd = start + imgMd.length;
+        UI.toast('图片已成功插入正文', 'success');
       }
     } catch (err) { UI.toast('图片上传失败', 'error'); }
     (e.target as HTMLInputElement).value = '';
+  });
+
+  // --- Preview Toggle ---
+  const previewToggle = document.getElementById('ed-preview-toggle-btn');
+  const edContent = document.getElementById('ed-content') as HTMLTextAreaElement;
+  const edPreview = document.getElementById('ed-preview-area') as HTMLElement;
+  let isPreview = false;
+
+  previewToggle?.addEventListener('click', async () => {
+    isPreview = !isPreview;
+    if (isPreview) {
+       previewToggle.textContent = '✏️ 编辑模式';
+       edContent.style.display = 'none';
+       edPreview.style.display = 'block';
+       
+       const { micromark } = await import('micromark');
+       edPreview.innerHTML = micromark(edContent.value);
+    } else {
+       previewToggle.textContent = '👁️ 预览模式';
+       edContent.style.display = 'block';
+       edPreview.style.display = 'none';
+    }
   });
 }
 

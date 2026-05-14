@@ -324,7 +324,11 @@ const upload = multer({
       if (type === 'user') cb(null, usersDir);
       else cb(null, assetsDir);
     },
-    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+    filename: (req, file, cb) => {
+      // Sanitize: replace spaces and problematic chars with underscores
+      const safeName = file.originalname.replace(/\s+/g, '_').replace(/[\[\]]/g, '');
+      cb(null, Date.now() + '-' + safeName);
+    }
   })
 });
 
@@ -335,7 +339,10 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   
   const type = req.query.type;
   const folder = type === 'user' ? 'users' : 'assets';
-  const fileUrl = `${protocol}://${host}/uploads/${folder}/${req.file.filename}`;
+  
+  // Encode the filename to ensure valid URL
+  const encodedFilename = encodeURIComponent(req.file.filename);
+  const fileUrl = `${protocol}://${host}/uploads/${folder}/${encodedFilename}`;
   
   if (type !== 'user') {
     db.run(`INSERT INTO assets (url, date) VALUES (?, ?)`, [fileUrl, new Date().toISOString()]);

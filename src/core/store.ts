@@ -24,7 +24,9 @@ export interface SiteConfig {
   glassBlur?: number;
   navLinks?: string; // JSON Array of navigation items
   aboutContent?: string; // Markdown content for About page
-  galleryOrder?: string; // JSON Array of asset URLs in custom order
+   galleryOrder?: string; // JSON Array of asset URLs in custom order
+  homeMidTitle?: string;
+  homeMidContent?: string;
 }
 
 export interface User {

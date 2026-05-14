@@ -82,9 +82,25 @@ export function hydrateUI() {
   if (navContainer && config.navLinks) {
     try {
       const links = JSON.parse(config.navLinks);
-      let navHtml = links.map((l: any) => `
-        <li><a href="#" data-link="${l.view}">${l.title}</a></li>
-      `).join('');
+      const allArticles = BlogStore.getArticles();
+      const categories = [...new Set(allArticles.map(a => a.category).filter(Boolean))];
+      const tags = [...new Set(allArticles.flatMap(a => (a.tag || '').split(',').map((t: string) => t.trim())).filter(Boolean))];
+
+      let navHtml = links.map((l: any) => {
+        if (l.view === 'articles') {
+          // Build dropdown for articles
+          return `
+            <li class="nav-dropdown-wrapper">
+              <a href="#" data-link="articles">${l.title}</a>
+              <div class="nav-dropdown" style="max-height:0; overflow:hidden; transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1); margin-left:0.5rem; border-left:2px solid rgba(94,114,228,0.2);">
+                <a href="#" class="nav-filter-item" id="open-category-panel">📂 按分类搜索</a>
+                <a href="#" class="nav-filter-item" id="open-tag-panel">🏷️ 按标签搜索</a>
+              </div>
+            </li>
+          `;
+        }
+        return `<li><a href="#" data-link="${l.view}">${l.title}</a></li>`;
+      }).join('');
 
       // Add Social Links
       if (user) {
@@ -99,6 +115,30 @@ export function hydrateUI() {
       }
 
       navContainer.innerHTML = navHtml;
+
+      // --- Dropdown accordion hover logic ---
+      const dropdownWrapper = navContainer.querySelector('.nav-dropdown-wrapper') as HTMLElement;
+      if (dropdownWrapper) {
+        let hoverTimer: ReturnType<typeof setTimeout> | null = null;
+        const dropdown = dropdownWrapper.querySelector('.nav-dropdown') as HTMLElement;
+        dropdownWrapper.addEventListener('mouseenter', () => {
+          hoverTimer = setTimeout(() => { dropdown.style.maxHeight = dropdown.scrollHeight + 'px'; }, 400);
+        });
+        dropdownWrapper.addEventListener('mouseleave', () => {
+          if (hoverTimer) clearTimeout(hoverTimer);
+          dropdown.style.maxHeight = '0';
+        });
+      }
+
+      // --- Filter panel open buttons ---
+      document.getElementById('open-category-panel')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        openFilterPanel('category', categories, navigateTo);
+      });
+      document.getElementById('open-tag-panel')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        openFilterPanel('tag', tags, navigateTo);
+      });
 
       // Re-attach listeners
       navContainer.querySelectorAll('[data-link]').forEach(link => {
@@ -204,6 +244,95 @@ function hideAdminTweaker() {
   if (tweaker) tweaker.remove();
 }
 
+// Filter Panel (right-side slide-in)
+function openFilterPanel(type: string, values: string[], onNavigate: (to: string, params?: any) => void) {
+  // Remove existing panel if any
+  document.getElementById('filter-panel-overlay')?.remove();
+  document.getElementById('filter-panel-container')?.remove();
+
+  const label = type === 'category' ? '📂 选择分类' : '🏷️ 选择标签';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'filter-panel-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:90;background:rgba(0,0,0,0.1);opacity:0;transition:opacity 0.3s;';
+
+  const panel = document.createElement('div');
+  panel.id = 'filter-panel-container';
+  panel.style.cssText = `
+    position:fixed; top:0; left:var(--sidebar-width); width:340px; height:100vh; z-index:91;
+    background:var(--card-bg); backdrop-filter:blur(20px);
+    box-shadow:8px 0 30px rgba(0,0,0,0.05);
+    transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    transform:translateX(-100%);
+    display:flex; flex-direction:column; border-right:1px solid rgba(255,255,255,0.2);
+  `;
+
+  const items = values.length > 0
+    ? values.map(v => `
+      <div class="filter-panel-item" data-val="${v}" style="
+        padding:0.8rem 1.2rem; cursor:pointer; border-bottom:1px solid rgba(0,0,0,0.04);
+        transition:all 0.15s ease; display:flex; align-items:center; gap:0.5rem;
+      ">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--theme-primary);opacity:0.5;"></span>
+        <span style="font-size:0.95rem;">${v}</span>
+      </div>
+    `).join('')
+    : '<div style="padding:2rem;text-align:center;color:#94a3b8;">暂无数据</div>';
+
+  panel.innerHTML = `
+    <div style="padding:1.2rem 1.5rem; border-bottom:1px solid rgba(0,0,0,0.08); display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0; font-size:1.1rem; font-family:var(--font-heading); color:var(--theme-primary);">${label}</h3>
+      <button id="close-filter-panel" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#94a3b8;line-height:1;">×</button>
+    </div>
+    <div style="flex:1; overflow-y:auto; padding:0.5rem 0;">
+      ${items}
+    </div>
+    <div style="padding:0.8rem 1.2rem; border-top:1px solid rgba(0,0,0,0.06);">
+      <button id="filter-show-all" style="width:100%;padding:0.6rem;background:var(--fawang-gradient);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;">查看全部文章</button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(panel);
+
+  const mainContent = document.querySelector('.main-content') as HTMLElement;
+
+  // Animate in
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '1';
+    panel.style.transform = 'translateX(0)';
+  });
+
+  const close = () => {
+    overlay.style.opacity = '0';
+    panel.style.transform = 'translateX(-100%)';
+    setTimeout(() => { overlay.remove(); panel.remove(); }, 350);
+  };
+
+  overlay.addEventListener('click', close);
+  panel.querySelector('#close-filter-panel')?.addEventListener('click', close);
+  panel.querySelector('#filter-show-all')?.addEventListener('click', () => {
+    close();
+    onNavigate('articles');
+  });
+
+  panel.querySelectorAll('.filter-panel-item').forEach(item => {
+    (item as HTMLElement).addEventListener('mouseenter', () => {
+      (item as HTMLElement).style.background = 'rgba(94,114,228,0.08)';
+      (item as HTMLElement).style.paddingLeft = '1.5rem';
+    });
+    (item as HTMLElement).addEventListener('mouseleave', () => {
+      (item as HTMLElement).style.background = '';
+      (item as HTMLElement).style.paddingLeft = '1.2rem';
+    });
+    item.addEventListener('click', () => {
+      const val = (item as HTMLElement).getAttribute('data-val');
+      close();
+      onNavigate('articles', { filterType: type, filterVal: val });
+    });
+  });
+}
+
 // Navigation Handler
 export function navigateTo(view: string, params?: any) {
   ChatUI.close(); // Close any open chat panels on navigation
@@ -230,10 +359,10 @@ export function navigateTo(view: string, params?: any) {
     }
 
     if (view === 'home') renderHome(appArea, navigateTo);
-    else if (view === 'articles') renderArticlesList(appArea, navigateTo);
+    else if (view === 'articles') renderArticlesList(appArea, navigateTo, params);
     else if (view === 'article') renderArticle(appArea, params.id, navigateTo);
     else if (view === 'about') renderAbout(appArea);
-    else if (view === 'photowall') renderGallery(appArea);
+    else if (view === 'photowall' || view === 'gallery') renderGallery(appArea);
     else if (view === 'login') renderLogin(appArea, navigateTo);
     else if (view === 'admin') renderAdmin(appArea, navigateTo);
     else if (view === 'profile') renderProfile(appArea, navigateTo);
