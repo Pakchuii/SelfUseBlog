@@ -17,7 +17,7 @@ const router = new Router();
 const appArea = document.getElementById('content-area') as HTMLElement;
 
 // Smooth Scroll
-const lenis = new Lenis();
+export const lenis = new Lenis();
 function raf(time: number) { lenis.raf(time); requestAnimationFrame(raf); }
 requestAnimationFrame(raf);
 
@@ -295,7 +295,7 @@ function openFilterPanel(type: string, values: string[], onNavigate: (to: string
   document.body.appendChild(overlay);
   document.body.appendChild(panel);
 
-  const mainContent = document.querySelector('.main-content') as HTMLElement;
+  // Unused: const mainContent = document.querySelector('.main-content') as HTMLElement;
 
   // Animate in
   requestAnimationFrame(() => {
@@ -377,6 +377,7 @@ export function navigateTo(view: string, params?: any) {
     }
 
     window.scrollTo(0, 0);
+    lenis.resize();
     hydrateUI();
 
     // Update Active Link

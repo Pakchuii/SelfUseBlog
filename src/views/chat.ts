@@ -1,5 +1,5 @@
+/// <reference types="vite/client" />
 import { BlogStore } from '../core/store';
-import { UI } from '../core/ui';
 
 interface Message {
   id: number;
@@ -17,6 +17,7 @@ export class ChatUI {
   private static lastGlobalSeen: string = localStorage.getItem('chat_last_global') || '1970-01-01T00:00:00Z';
   private static lastPrivateSeen: Record<number, string> = JSON.parse(localStorage.getItem('chat_last_private') || '{}');
   private static unreadData = { global: 0, private: {} as Record<number, number> };
+  private static pollTimer: any = null;
 
   static initBackgroundWatcher() {
     setInterval(() => this.checkUpdates(), 5000);
@@ -27,9 +28,7 @@ export class ChatUI {
     const user = BlogStore.getCurrentUser();
     if (!user) return;
 
-    const apiHost = window.location.hostname;
-    // We check for updates since the OLDEST relevant timestamp to be safe
-    const res = await fetch(`http://${apiHost}:3001/api/chat/updates?since=${this.lastGlobalSeen}`, {
+    const res = await fetch(`${BlogStore.getApiBase()}/chat/updates?since=${this.lastGlobalSeen}`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('fawang_token')}` }
     });
     if (res.ok) {
@@ -56,7 +55,7 @@ export class ChatUI {
       if (!badge) {
         badge = document.createElement('span');
         badge.className = 'chat-badge';
-        badge.style.cssText = 'background: #ef4444; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; margin-left: 8px; font-family: var(--font-mono);';
+        (badge as HTMLElement).style.cssText = 'background: #ef4444; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; margin-left: 8px; font-family: var(--font-mono);';
         chatTrigger.appendChild(badge);
       }
       const text = this.formatBadge(this.unreadData.global);
@@ -69,7 +68,7 @@ export class ChatUI {
       if (!badge) {
         badge = document.createElement('span');
         badge.className = 'chat-badge';
-        badge.style.cssText = 'background: var(--accent-purple); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; margin-left: 8px; font-family: var(--font-mono);';
+        (badge as HTMLElement).style.cssText = 'background: var(--accent-purple); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; margin-left: 8px; font-family: var(--font-mono);';
         friendsTrigger.appendChild(badge);
       }
       const totalPrivate = Object.values(this.unreadData.private).reduce((a, b) => a + b, 0);
@@ -93,8 +92,7 @@ export class ChatUI {
   }
 
   private static async fetchUsers() {
-    const apiHost = window.location.hostname;
-    const res = await fetch(`http://${apiHost}:3001/api/chat/users`, {
+    const res = await fetch(`${BlogStore.getApiBase()}/chat/users`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('fawang_token')}` }
     });
     return await res.json();
@@ -141,7 +139,7 @@ export class ChatUI {
     setTimeout(() => overlay.style.transform = 'translateX(0)', 10);
 
     const closeBtn = overlay.querySelector('#close-chat')!;
-    closeBtn.onclick = () => ChatUI.close();
+    (closeBtn as HTMLElement).onclick = () => ChatUI.close();
 
     const input = overlay.querySelector('#chat-input') as HTMLTextAreaElement;
     const sendBtn = overlay.querySelector('#send-chat') as HTMLButtonElement;
@@ -159,9 +157,8 @@ export class ChatUI {
         localStorage.setItem('chat_last_private', JSON.stringify(this.lastPrivateSeen));
       }
 
-      const apiHost = window.location.hostname;
-      const endpoint = type === 'global' ? '/api/chat/global' : `/api/chat/private/${targetId}`;
-      await fetch(`http://${apiHost}:3001${endpoint}`, {
+      const endpoint = type === 'global' ? '/chat/global' : `/chat/private/${targetId}`;
+      await fetch(`${BlogStore.getApiBase()}${endpoint}`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -224,7 +221,7 @@ export class ChatUI {
     document.body.appendChild(overlay);
     setTimeout(() => overlay.style.transform = 'translateX(0)', 10);
 
-    overlay.querySelector('#close-chat')!.onclick = () => ChatUI.close();
+    (overlay.querySelector('#close-chat') as HTMLElement).onclick = () => ChatUI.close();
 
     overlay.querySelectorAll('.user-item').forEach(item => {
       item.addEventListener('click', () => {
@@ -257,10 +254,9 @@ export class ChatUI {
   }
 
   private static async refreshMessages(type: 'global' | 'private', targetId?: number) {
-    const apiHost = window.location.hostname;
-    const endpoint = type === 'global' ? '/api/chat/global' : `/api/chat/private/${targetId}`;
+    const endpoint = type === 'global' ? '/chat/global' : `/chat/private/${targetId}`;
     try {
-      const res = await fetch(`http://${apiHost}:3001${endpoint}`, {
+      const res = await fetch(`${BlogStore.getApiBase()}${endpoint}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('fawang_token')}` }
       });
       if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);

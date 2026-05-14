@@ -174,14 +174,6 @@ app.get('/api/users/profile', authenticate, (req, res) => {
   });
 });
 
-app.put('/api/users/profile', authenticate, (req, res) => {
-  const { nickname, avatarUrl, bio } = req.body;
-  db.run(`UPDATE users SET nickname = ?, avatarUrl = ?, bio = ? WHERE id = ?`,
-    [nickname, avatarUrl, bio, req.user.id], (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ success: true });
-    });
-});
 
 // --- ADMIN USER MANAGEMENT ---
 app.get('/api/admin/users', authenticate, (req, res) => {
@@ -340,9 +332,9 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   const type = req.query.type;
   const folder = type === 'user' ? 'users' : 'assets';
   
-  // Encode the filename to ensure valid URL
+  // Use relative path to avoid localhost/CORS issues
   const encodedFilename = encodeURIComponent(req.file.filename);
-  const fileUrl = `${protocol}://${host}/uploads/${folder}/${encodedFilename}`;
+  const fileUrl = `/uploads/${folder}/${encodedFilename}`;
   
   if (type !== 'user') {
     db.run(`INSERT INTO assets (url, date) VALUES (?, ?)`, [fileUrl, new Date().toISOString()]);
@@ -363,7 +355,7 @@ app.get('/api/assets', (req, res) => {
         time: fs.statSync(path.join(assetsDir, fileName)).mtime.getTime()
       }))
       .sort((a, b) => b.time - a.time)
-      .map(file => `${protocol}://${host}/uploads/assets/${file.name}`);
+      .map(file => `/uploads/assets/${file.name}`);
       
     res.json(sortedFiles);
   });
@@ -499,4 +491,21 @@ app.delete('/api/admin/chat', authenticate, (req, res) => {
   });
 });
 
-app.listen(port, () => console.log(`Backend API Server running on port ${port}`));
+// --- SERVE FRONTEND ---
+const distDir = path.join(__dirname, 'dist');
+if (fs.existsSync(distDir)) {
+  app.use(express.static(distDir));
+  
+  // SPA Fallback: Handle all other GET requests by serving index.html
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api')) {
+      res.sendFile(path.join(distDir, 'index.html'));
+    } else {
+      next();
+    }
+  });
+}
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});

@@ -709,8 +709,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     
     bannerUploadBtn!.textContent = '上传中...';
     try {
-      const apiHost = window.location.hostname;
-      const res = await fetch(`http://${apiHost}:3001/api/upload?type=asset`, { method: 'POST', body: formData });
+      const res = await fetch(`${BlogStore.getApiBase()}/upload?type=asset`, { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success) {
         bannerUrlInput.value = data.url;
@@ -740,8 +739,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     
     globalBgUploadBtn!.textContent = '上传中...';
     try {
-      const apiHost = window.location.hostname;
-      const res = await fetch(`http://${apiHost}:3001/api/upload?type=asset`, { method: 'POST', body: formData });
+      const res = await fetch(`${BlogStore.getApiBase()}/upload?type=asset`, { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success) {
         globalBgUrlInput.value = data.url;
@@ -770,7 +768,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     formData.append('file', file);
     authBgBtn!.textContent = '...';
     try {
-      const res = await fetch(`http://${window.location.hostname}:3001/api/upload?type=asset`, { method: 'POST', body: formData });
+      const res = await fetch(`${BlogStore.getApiBase()}/upload?type=asset`, { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success) {
         authBgUrlInput.value = data.url;
@@ -792,7 +790,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     formData.append('file', file);
     authSideBtn!.textContent = '...';
     try {
-      const res = await fetch(`http://${window.location.hostname}:3001/api/upload?type=asset`, { method: 'POST', body: formData });
+      const res = await fetch(`${BlogStore.getApiBase()}/upload?type=asset`, { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success) {
         authSideUrlInput.value = data.url;
@@ -949,7 +947,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
   // Assets Management
   const loadAssets = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/assets');
+      const res = await fetch(`${BlogStore.getApiBase()}/assets`);
       if (!res.ok) throw new Error('Failed to fetch assets');
       const allAssets = await res.json();
       const config = BlogStore.getConfig();
@@ -1145,9 +1143,26 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         e.stopPropagation();
         const url = (btn as HTMLElement).getAttribute('data-url');
         if (url) {
-          navigator.clipboard.writeText(url).then(() => {
-            UI.toast('链接已复制到剪贴板', 'success');
-          });
+          // Fallback for non-HTTPS (navigator.clipboard is undefined)
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => {
+              UI.toast('链接已复制到剪贴板', 'success');
+            });
+          } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = url;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+              document.execCommand('copy');
+              UI.toast('链接已复制 (兼容模式)', 'success');
+            } catch (err) {
+              UI.toast('复制失败，请手动复制', 'error');
+            }
+            document.body.removeChild(textarea);
+          }
         }
       });
     });
@@ -1160,8 +1175,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
           const filename = url.split('/').pop();
           try {
             const token = localStorage.getItem('fawang_token');
-            const apiHost = window.location.hostname;
-            const delRes = await fetch(`http://${apiHost}:3001/api/assets/${filename}`, {
+            const delRes = await fetch(`${BlogStore.getApiBase()}/assets/${filename}`, {
               method: 'DELETE',
               headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -1191,8 +1205,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
 
   document.getElementById('clear-global-chat-btn')?.addEventListener('click', async () => {
     if (await UI.confirm('确定要永久删除选定时间段内的所有版聊记录吗？')) {
-      const apiHost = window.location.hostname;
-      const res = await fetch(`http://${apiHost}:3001/api/admin/chat?type=global${getDelParams()}`, {
+      const res = await fetch(`${BlogStore.getApiBase()}/admin/chat?type=global${getDelParams()}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('fawang_token')}` }
       });
@@ -1207,7 +1220,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     if (!userA) return UI.toast("请至少填入一个用户 ID", 'error');
     
     let msg = '';
-    let url = `http://${window.location.hostname}:3001/api/admin/chat?type=private&userId=${userA}${getDelParams()}`;
+    let url = `${BlogStore.getApiBase()}/admin/chat?type=private&userId=${userA}${getDelParams()}`;
     if (userB) {
       msg = `确定要清空 ID ${userA} 与 ID ${userB} 之间的私聊记录吗？`;
       url += `&targetUserId=${userB}`;
@@ -1227,8 +1240,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
 
   document.getElementById('clear-all-private-chat-btn')?.addEventListener('click', async () => {
     if (await UI.confirm('确定要清空全站私聊记录吗？(含时间过滤)')) {
-      const apiHost = window.location.hostname;
-      const res = await fetch(`http://${apiHost}:3001/api/admin/chat?type=all_private${getDelParams()}`, {
+      const res = await fetch(`${BlogStore.getApiBase()}/admin/chat?type=all_private${getDelParams()}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('fawang_token')}` }
       });
@@ -1244,8 +1256,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
 
     try {
       const token = localStorage.getItem('fawang_token');
-      const apiHost = window.location.hostname;
-      const url = `http://${apiHost}:3001/api/admin/users`;
+      const url = `${BlogStore.getApiBase()}/admin/users`;
       
       const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -1284,8 +1295,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         btn.addEventListener('click', async (e) => {
           const id = (e.target as HTMLElement).getAttribute('data-id');
           if (id) {
-            const apiHost = window.location.hostname;
-            const res = await fetch(`http://${apiHost}:3001/api/admin/users/${id}/status`, {
+            const res = await fetch(`${BlogStore.getApiBase()}/admin/users/${id}/status`, {
               method: 'PUT',
               headers: { 
                 'Authorization': `Bearer ${token}`,
@@ -1308,8 +1318,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
           const msg = isReject ? '确认驳回该申请并删除账号？' : '确认永久删除该用户？';
           
           if (id && await UI.confirm(msg)) {
-            const apiHost = window.location.hostname;
-            const res = await fetch(`http://${apiHost}:3001/api/admin/users/${id}`, {
+            const res = await fetch(`${BlogStore.getApiBase()}/admin/users/${id}`, {
               method: 'DELETE',
               headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -1341,8 +1350,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
       const formData = new FormData();
       formData.append('file', file);
       try {
-        const apiHost = window.location.hostname;
-        await fetch(`http://${apiHost}:3001/api/upload?type=asset`, { method: 'POST', body: formData });
+        await fetch(`${BlogStore.getApiBase()}/upload?type=asset`, { method: 'POST', body: formData });
       } catch (err) { console.error(err); }
       done++;
       btn.textContent = `上传中 ${done}/${total}...`;
@@ -1415,8 +1423,8 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     
     UI.toast('图片上传中...', 'info');
     try {
-      const apiHost = window.location.hostname;
-      const res = await fetch(`http://${apiHost}:3001/api/upload?type=asset`, { method: 'POST', body: formData });
+      const uploadUrl = `${BlogStore.getApiBase()}/upload?type=asset`;
+      const res = await fetch(uploadUrl, { method: 'POST', body: formData });
       const data = await res.json();
       if (data.success && data.url) {
         const textarea = document.getElementById('ed-content') as HTMLTextAreaElement;
@@ -1432,7 +1440,10 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         textarea.selectionStart = textarea.selectionEnd = start + imgMd.length;
         UI.toast('图片已成功插入正文', 'success');
       }
-    } catch (err) { UI.toast('图片上传失败', 'error'); }
+    } catch (err) { 
+      console.error('Upload Error:', err);
+      UI.toast(`图片上传失败: ${err}`, 'error'); 
+    }
     (e.target as HTMLInputElement).value = '';
   });
 
@@ -1658,8 +1669,8 @@ export function renderProfile(container: HTMLElement, onNavigate: (to: string) =
         
         uploadBtn!.textContent = '上传中...';
         try {
-          const apiHost = window.location.hostname;
-          const res = await fetch(`http://${apiHost}:3001/api/upload?type=user`, { method: 'POST', body: formData });
+          const uploadUrl = `${BlogStore.getApiBase()}/upload?type=user`;
+          const res = await fetch(uploadUrl, { method: 'POST', body: formData });
           const data = await res.json();
           if (data.success) {
             urlInput.value = data.url;

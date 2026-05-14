@@ -3,6 +3,40 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { UI } from '../core/ui';
 
+function getHeroBannerHtml(title: string, subtitle?: string) {
+  const config = BlogStore.getConfig();
+  const isVideo = config.bannerImageUrl?.match(/\.(mp4|webm)$/i);
+  
+  if (isVideo) {
+    return `
+      <div style="padding: 2rem 5rem 0 5rem; max-width: 1100px; margin: 0 auto;">
+        <section class="hero-banner" style="height: 260px; padding:0; position:relative; border-radius: 24px; box-shadow: 0 15px 45px rgba(0,0,0,0.1); backdrop-filter: blur(var(--glass-blur)); overflow: hidden;">
+          <video autoplay loop muted playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.8;">
+            <source src="${config.bannerImageUrl}">
+          </video>
+          <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to right, rgba(0,0,0,0.4), transparent); z-index: 1;"></div>
+          <div style="position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; height: 100%; padding: 0 4rem;">
+            <h1 style="text-shadow: 0 4px 12px rgba(0,0,0,0.3);">${title}</h1>
+            ${subtitle ? `<p class="subtitle" style="text-shadow: 0 2px 8px rgba(0,0,0,0.3);">${subtitle}</p>` : ''}
+          </div>
+        </section>
+      </div>
+    `;
+  } else {
+    const heroStyle = config.bannerImageUrl 
+      ? `background-image: linear-gradient(to right, rgba(0,0,0,0.4), transparent), url('${config.bannerImageUrl}'); background-position: center; background-size: cover; background-repeat: no-repeat;` 
+      : `background: var(--fawang-gradient);`;
+    return `
+      <div style="padding: 2rem 5rem 0 5rem; max-width: 1100px; margin: 0 auto;">
+        <section class="hero-banner" style="height: 260px; ${heroStyle} border-radius: 24px; box-shadow: 0 15px 45px rgba(0,0,0,0.1); position:relative; display: flex; flex-direction: column; justify-content: center; padding: 0 4rem; backdrop-filter: blur(var(--glass-blur));">
+          <h1 style="text-shadow: 0 4px 12px rgba(0,0,0,0.3);">${title}</h1>
+          ${subtitle ? `<p class="subtitle" style="text-shadow: 0 2px 8px rgba(0,0,0,0.3);">${subtitle}</p>` : ''}
+        </section>
+      </div>
+    `;
+  }
+}
+
 export function renderArticle(container: HTMLElement, id: string, onNavigate: (to: string, params?: any) => void) {
   const article = BlogStore.getArticles().find(a => a.id === id);
   if (!article) return onNavigate('home');
@@ -118,11 +152,7 @@ export function renderAbout(container: HTMLElement) {
   const safeHtml = DOMPurify.sanitize(rawHtml);
 
   container.innerHTML = `
-    <div style="padding: 2rem 5rem 0 5rem;">
-      <section class="hero-banner" style="height: 200px; background: var(--fawang-gradient); border-radius: 24px; box-shadow: 0 15px 45px rgba(0,0,0,0.1); position:relative; display: flex; flex-direction: column; justify-content: center; padding: 0 4rem; backdrop-filter: blur(var(--glass-blur));">
-        <h1 style="text-shadow: 0 4px 12px rgba(0,0,0,0.3);">关于我 / Identity</h1>
-      </section>
-    </div>
+    ${getHeroBannerHtml('关于我 / Identity')}
     <section class="feed-container">
       <div class="post-card markdown-body" style="cursor: default; border: 1px solid rgba(255,255,255,0.3); min-height: 50vh;">
         <div style="font-size: 1.1rem; line-height: 1.8; color: var(--text-main);">${safeHtml}</div>
@@ -133,7 +163,6 @@ export function renderAbout(container: HTMLElement) {
 
 export function renderArticlesList(container: HTMLElement, onNavigate: (to: string, params?: any) => void, params?: any) {
   let articles = BlogStore.getArticles();
-  const config = BlogStore.getConfig();
   const filterType = params?.filterType;
   const filterVal = params?.filterVal;
 
@@ -144,36 +173,7 @@ export function renderArticlesList(container: HTMLElement, onNavigate: (to: stri
     articles = articles.filter(a => (a.tag || '').split(',').map(t => t.trim()).includes(filterVal));
   }
   
-  const isVideo = config.bannerImageUrl?.match(/\.(mp4|webm)$/i);
-  let heroBannerHtml = '';
-  if (isVideo) {
-    heroBannerHtml = `
-      <div style="padding: 2rem 5rem 0 5rem; max-width: 1100px; margin: 0 auto;">
-        <section class="hero-banner" style="height: 260px; padding:0; position:relative; border-radius: 24px; box-shadow: 0 15px 45px rgba(0,0,0,0.1); backdrop-filter: blur(var(--glass-blur)); overflow: hidden;">
-          <video autoplay loop muted playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.8;">
-            <source src="${config.bannerImageUrl}">
-          </video>
-          <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to right, rgba(0,0,0,0.4), transparent); z-index: 1;"></div>
-          <div style="position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; height: 100%; padding: 0 4rem;">
-            <h1 style="text-shadow: 0 4px 12px rgba(0,0,0,0.3);">文章归档 / ARCHIVE</h1>
-            <p class="subtitle" style="text-shadow: 0 2px 8px rgba(0,0,0,0.3);">记录所有的技术沉淀与思考</p>
-          </div>
-        </section>
-      </div>
-    `;
-  } else {
-    const heroStyle = config.bannerImageUrl 
-      ? `background-image: linear-gradient(to right, rgba(0,0,0,0.4), transparent), url('${config.bannerImageUrl}'); background-position: center; background-size: cover; background-repeat: no-repeat;` 
-      : `background: var(--fawang-gradient);`;
-    heroBannerHtml = `
-      <div style="padding: 2rem 5rem 0 5rem; max-width: 1100px; margin: 0 auto;">
-        <section class="hero-banner" style="height: 260px; ${heroStyle} border-radius: 24px; box-shadow: 0 15px 45px rgba(0,0,0,0.1); position:relative; display: flex; flex-direction: column; justify-content: center; padding: 0 4rem; backdrop-filter: blur(var(--glass-blur));">
-          <h1 style="text-shadow: 0 4px 12px rgba(0,0,0,0.3);">文章归档 / ARCHIVE</h1>
-          <p class="subtitle" style="text-shadow: 0 2px 8px rgba(0,0,0,0.3);">记录所有的技术沉淀与思考</p>
-        </section>
-      </div>
-    `;
-  }
+  const heroBannerHtml = getHeroBannerHtml('文章归档 / ARCHIVE', '记录所有的技术沉淀与思考');
 
   // Filter badge
   const filterBadge = filterVal ? `
@@ -239,12 +239,7 @@ export function renderArticlesList(container: HTMLElement, onNavigate: (to: stri
 
 export function renderGallery(container: HTMLElement) {
   container.innerHTML = `
-    <div style="padding: 2rem 5rem 0 5rem;">
-      <section class="hero-banner" style="height: 200px; background: var(--fawang-gradient); border-radius: 24px; box-shadow: 0 15px 45px rgba(0,0,0,0.1); position:relative; display: flex; flex-direction: column; justify-content: center; padding: 0 4rem; backdrop-filter: blur(var(--glass-blur));">
-        <h1 style="text-shadow: 0 4px 12px rgba(0,0,0,0.3);">图片墙 / Gallery</h1>
-        <p style="color: white; opacity: 0.9; margin-top: 0.5rem;">记录生活瞬间与视觉灵感</p>
-      </section>
-    </div>
+    ${getHeroBannerHtml('图片墙 / Gallery', '记录生活瞬间与视觉灵感')}
     <div id="gallery-loader" style="padding: 5rem; text-align: center; color: var(--text-main);">
        <p>正在读取资产库...</p>
     </div>
@@ -254,7 +249,7 @@ export function renderGallery(container: HTMLElement) {
   const grid = document.getElementById('photo-wall-grid');
   const loader = document.getElementById('gallery-loader');
 
-  fetch('http://localhost:3001/api/assets')
+  fetch(`${BlogStore.getApiBase()}/assets`)
     .then(r => r.json())
     .then(urls => {
       const config = BlogStore.getConfig();
@@ -287,7 +282,7 @@ export function renderGallery(container: HTMLElement) {
         });
       }
     })
-    .catch(err => {
+    .catch(_err => {
       if (loader) loader.innerHTML = `<p style="color: #ef4444;">无法加载图片墙，请检查网络或后端状态。</p>`;
     });
 }

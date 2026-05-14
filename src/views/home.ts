@@ -124,7 +124,7 @@ export function renderHome(container: HTMLElement, onNavigate: (to: string, para
   });
 
   // Carousel Logic
-  fetch('http://localhost:3001/api/assets')
+  fetch(`${BlogStore.getApiBase()}/assets`)
     .then(r => r.json())
     .then(urls => {
       const carouselTrack = document.getElementById('home-carousel-track');

@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 export interface Article {
   id: string;
   title: string;
@@ -74,7 +76,15 @@ let currentUser: User | null = (cachedUser && cachedUser !== 'undefined') ? JSON
 
 let token: string | null = localStorage.getItem('fawang_token');
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = '/api';
+
+const normalizeUrl = (url: string | null | undefined) => {
+  if (!url) return url;
+  if (url.startsWith('http://localhost:3001')) {
+    return url.replace('http://localhost:3001', '');
+  }
+  return url;
+};
 
 const getHeaders = () => {
   const h: any = { 'Content-Type': 'application/json' };
@@ -94,9 +104,20 @@ export const BlogStore = {
       
       if (cfgRes && !cfgRes.error) {
         config = { ...config, ...cfgRes };
+        config.bannerImageUrl = normalizeUrl(config.bannerImageUrl) as string;
+        config.avatarUrl = normalizeUrl(config.avatarUrl) as string;
         localStorage.setItem('fawang_config', JSON.stringify(config));
       }
-      if (Array.isArray(artRes)) articles = artRes;
+      if (Array.isArray(artRes)) {
+        articles = artRes.map((a: any) => ({
+          ...a,
+          thumbnailUrl: normalizeUrl(a.thumbnailUrl),
+          comments: (a.comments || []).map((c: any) => ({
+            ...c,
+            avatarUrl: normalizeUrl(c.avatarUrl)
+          }))
+        }));
+      }
 
       // 2. Refresh user profile if token exists
       if (token) {
@@ -106,6 +127,7 @@ export const BlogStore = {
           });
           if (profileRes.ok) {
             currentUser = await profileRes.json();
+            if (currentUser) currentUser.avatarUrl = normalizeUrl(currentUser.avatarUrl) as string;
             localStorage.setItem('fawang_user', JSON.stringify(currentUser));
           } else if (profileRes.status === 401 || profileRes.status === 403) {
             // Only clear if explicitly unauthorized
@@ -182,6 +204,7 @@ export const BlogStore = {
       if (data.success) {
         token = data.token;
         currentUser = data.user;
+        if (currentUser) currentUser.avatarUrl = normalizeUrl(currentUser.avatarUrl) as string;
         localStorage.setItem('fawang_token', token as string);
         localStorage.setItem('fawang_user', JSON.stringify(currentUser));
         return { success: true };
@@ -217,7 +240,7 @@ export const BlogStore = {
   isAdmin: () => currentUser?.role === 'admin',
   getCurrentUser: () => currentUser,
 
-  updateUserProfile: async (username: string, profile: Partial<User>) => {
+  updateUserProfile: async (_username: string, profile: Partial<User>) => {
     const res = await fetch(`${API_BASE}/users/profile`, {
       method: 'PUT',
       headers: getHeaders(),
@@ -225,7 +248,10 @@ export const BlogStore = {
     });
     if (res.ok && currentUser) {
       currentUser = { ...currentUser, ...profile };
+      if (currentUser.avatarUrl) currentUser.avatarUrl = normalizeUrl(currentUser.avatarUrl) as string;
       localStorage.setItem('fawang_user', JSON.stringify(currentUser));
     }
-  }
+  },
+
+  getApiBase: () => API_BASE
 };
