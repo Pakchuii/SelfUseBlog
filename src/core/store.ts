@@ -27,6 +27,13 @@ export interface SiteConfig {
    galleryOrder?: string; // JSON Array of asset URLs in custom order
   homeMidTitle?: string;
   homeMidContent?: string;
+  authBackgroundUrl?: string;
+  authSideImageUrl?: string;
+  authGlassOpacity?: number;
+  authGlassBlur?: number;
+  authCarouselSpeed?: number;
+  authBgBrightness?: number;
+  authBgBlur?: number;
 }
 
 export interface User {

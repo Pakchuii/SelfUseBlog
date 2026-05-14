@@ -3,53 +3,102 @@ import { hydrateUI } from '../main';
 import { UI } from '../core/ui';
 
 export function renderLogin(container: HTMLElement, onNavigate: (to: string) => void) {
+  const config = BlogStore.getConfig();
+  const bg = config.authBackgroundUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=80';
+  const manualSideImg = config.authSideImageUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
+  
+  const authOpacity = config.authGlassOpacity ?? 0.92;
+  const authBlur = config.authGlassBlur ?? 30;
+  const bgBrightness = config.authBgBrightness ?? 0.4;
+  const bgBlur = config.authBgBlur ?? 8;
+  const carouselSpeed = (config.authCarouselSpeed ?? 4) * 1000;
+
+  let sideImages: string[] = [];
+  try {
+    if (config.galleryOrder) {
+      sideImages = JSON.parse(config.galleryOrder);
+    }
+  } catch (e) { console.error("Gallery parse error", e); }
+  
+  if (sideImages.length === 0) sideImages = [manualSideImg];
+
   container.innerHTML = `
-    <div style="height: 100vh; display: flex; align-items: center; justify-content: center; background: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1920&q=80') center/cover; position: relative;">
-      <div style="position: absolute; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(5px);"></div>
+    <div id="auth-root" style="height: 100vh; display: flex; align-items: center; justify-content: center; background: url('${bg}') center/cover no-repeat; position: relative; overflow: hidden;">
+      <style>
+        #auth-root * { box-sizing: border-box; }
+        .auth-input { width: 100%; padding: 1rem; border: 1px solid rgba(0,0,0,0.1); border-radius: 14px; font-family: var(--font-mono); background: white; font-size: 0.95rem; outline: none; transition: border-color 0.3s; }
+        .auth-input:focus { border-color: var(--theme-primary); }
+      </style>
+      <div style="position: absolute; inset: 0; background: rgba(15, 23, 42, ${bgBrightness}); backdrop-filter: blur(${bgBlur}px);"></div>
       
-      <div class="post-card" style="width: 400px; text-align: center; position: relative; z-index: 10; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.2);">
-        <div style="display: flex; margin-bottom: 2rem; border-bottom: 2px solid #e2e8f0;">
-          <div id="tab-login" style="flex: 1; padding: 1rem; cursor: pointer; font-weight: bold; color: var(--theme-primary); border-bottom: 2px solid var(--theme-primary); margin-bottom: -2px;">登录 / LOGIN</div>
-          <div id="tab-register" style="flex: 1; padding: 1rem; cursor: pointer; font-weight: bold; color: #94a3b8;">注册 / REGISTER</div>
+      <!-- Combined Auth Card -->
+      <div style="display: flex; width: 1050px; max-width: 95vw; height: 600px; position: relative; z-index: 10; background: rgba(255,255,255,${authOpacity}); backdrop-filter: blur(${authBlur}px); border-radius: 40px; box-shadow: 0 50px 120px rgba(0,0,0,0.4); overflow: hidden; border: 1px solid rgba(255,255,255,0.4);">
+        
+        <!-- Left: Carousel Section -->
+        <div id="auth-carousel" style="flex: 1.6; position: relative; overflow: hidden; background: #000; height: 100%;">
+           ${sideImages.map((src: string, i: number) => `
+             <img src="${src}" class="auth-slide" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: ${i === 0 ? 1 : 0}; transition: opacity 1.5s ease-in-out;">
+           `).join('')}
+           <div style="position: absolute; inset: 0; background: linear-gradient(to right, transparent, rgba(255,255,255,0.15)); pointer-events: none;"></div>
         </div>
 
-        <div id="form-login">
-          <input type="text" id="login-user" placeholder="Username / 账号" style="width: 100%; padding: 1rem; margin-bottom: 1rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: var(--font-mono); background: #f8fafc;">
-          <input type="password" id="login-pwd" placeholder="Password / 密码" style="width: 100%; padding: 1rem; margin-bottom: 1rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: var(--font-mono); background: #f8fafc;">
-          <button id="login-btn" class="action-btn" style="width: 100%; padding: 1rem; background: var(--fawang-gradient); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(94, 114, 228, 0.4);">ACCESS_TERMINAL</button>
-          <p id="login-error" style="color: #ef4444; margin-top: 1rem; display: none; font-size: 0.9rem;">Invalid Username or Password</p>
-        </div>
+        <!-- Right: Form Section -->
+        <div style="flex: 1; padding: 2.5rem; display: flex; flex-direction: column; justify-content: center; text-align: center; height: 100%; overflow: hidden;">
+          <div style="display: flex; margin-bottom: 2rem; border-bottom: 2px solid rgba(0,0,0,0.05); flex-shrink: 0;">
+            <div id="tab-login" style="flex: 1; padding: 1rem; cursor: pointer; font-weight: 800; color: var(--theme-primary); border-bottom: 3px solid var(--theme-primary); margin-bottom: -2.5px; transition: all 0.3s; font-size: 1.1rem;">登录 / LOGIN</div>
+            <div id="tab-register" style="flex: 1; padding: 1rem; cursor: pointer; font-weight: 800; color: #94a3b8; transition: all 0.3s; font-size: 1.1rem;">注册 / REGISTER</div>
+          </div>
 
-        <div id="form-register" style="display: none; padding: 0 1rem;">
-          <p style="font-size: 0.8rem; color: #888; margin-bottom: 1.5rem;">新用户注册 (Register)，提交后请联系管理员审核。</p>
-          <div style="display: flex; flex-direction: column; gap: 1rem; text-align: left;">
-            <div>
-              <label style="font-size: 0.75rem; color: #64748b; font-weight: 600;">用户名 (ID)</label>
-              <input id="reg-user" type="text" placeholder="设置独一无二的 ID" style="width: 100%; padding: 0.8rem; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 0.3rem;">
-            </div>
-            <div style="display: flex; gap: 1rem;">
-              <div style="flex: 1;">
-                <label style="font-size: 0.75rem; color: #64748b; font-weight: 600;">设置密码</label>
-                <input id="reg-pwd" type="password" placeholder="Password" style="width: 100%; padding: 0.8rem; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 0.3rem;">
+          <div id="auth-form-container" style="flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%;">
+            <div id="form-login" style="width: 100%;">
+              <div style="margin-bottom: 1rem; text-align: left; width: 100%;">
+                 <label style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; margin-left: 0.5rem; margin-bottom: 0.3rem; display: block;">IDENTIFIER</label>
+                 <input type="text" id="login-user" placeholder="Username / 账号" class="auth-input">
               </div>
-              <div style="flex: 1;">
-                <label style="font-size: 0.75rem; color: #64748b; font-weight: 600;">确认密码</label>
-                <input id="reg-pwd-confirm" type="password" placeholder="Repeat" style="width: 100%; padding: 0.8rem; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 0.3rem;">
+              <div style="margin-bottom: 1.5rem; text-align: left; width: 100%;">
+                 <label style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; margin-left: 0.5rem; margin-bottom: 0.3rem; display: block;">SECRET_KEY</label>
+                 <input type="password" id="login-pwd" placeholder="Password / 密码" class="auth-input">
               </div>
+              <button id="login-btn" class="action-btn" style="width: 100%; padding: 1.1rem; background: var(--fawang-gradient); color: white; border: none; border-radius: 14px; font-weight: 900; cursor: pointer; box-shadow: 0 12px 25px rgba(94, 114, 228, 0.3); transition: all 0.3s; font-size: 0.95rem; letter-spacing: 1px;">ACCESS_TERMINAL</button>
+              <p id="login-error" style="color: #ef4444; margin-top: 1rem; display: none; font-size: 0.85rem; font-weight: 600;">Invalid Username or Password</p>
             </div>
-            <div>
-              <label style="font-size: 0.75rem; color: #64748b; font-weight: 600;">申请理由 (Reason)</label>
-              <textarea id="reg-reason" placeholder="简单说明您申请账号的原因..." style="width: 100%; padding: 0.8rem; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 0.3rem; min-height: 80px; resize: vertical;"></textarea>
+
+            <div id="form-register" style="display: none; width: 100%;">
+              <p style="font-size: 0.7rem; color: #64748b; margin-bottom: 1.2rem; line-height: 1.4;">提交注册申请后，请联系管理员审核。</p>
+              <div style="display: flex; flex-direction: column; gap: 0.6rem; text-align: left; width: 100%;">
+                <input id="reg-user" type="text" placeholder="设置用户名" class="auth-input" style="padding: 0.8rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; width: 100%;">
+                  <input id="reg-pwd" type="password" placeholder="密码" class="auth-input" style="padding: 0.8rem;">
+                  <input id="reg-pwd-confirm" type="password" placeholder="重复" class="auth-input" style="padding: 0.8rem;">
+                </div>
+                <textarea id="reg-reason" placeholder="申请理由..." class="auth-input" style="padding: 0.8rem; min-height: 60px; resize: none;"></textarea>
+              </div>
+              <button id="reg-btn" class="action-btn" style="width: 100%; padding: 1rem; background: #2dce89; color: white; border: none; border-radius: 14px; margin-top: 1.2rem; font-weight: 900; cursor: pointer; box-shadow: 0 12px 25px rgba(45, 206, 137, 0.2); font-size: 0.95rem;">SUBMIT_APPLICATION</button>
+              <p id="reg-error" style="color: #ef4444; font-size: 0.8rem; margin-top: 1rem; display: none;"></p>
             </div>
           </div>
-          <button id="reg-btn" class="action-btn" style="width: 100%; padding: 1rem; background: #10b981; color: white; border: none; border-radius: 10px; margin-top: 1.5rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">提交注册申请</button>
-          <p id="reg-error" style="color: #ef4444; font-size: 0.8rem; margin-top: 1rem; display: none;">该用户名已存在或注册受限</p>
-        </div>
 
-        <p style="margin-top: 2rem; font-size: 0.8rem; cursor: pointer; color: #64748b;" id="back-home-btn">← 返回首页</p>
+          <p style="margin-top: 2rem; font-size: 0.8rem; cursor: pointer; color: #94a3b8; transition: all 0.3s; font-weight: 600; flex-shrink: 0;" id="back-home-btn" onmouseover="this.style.color='var(--theme-primary)'" onmouseout="this.style.color='#94a3b8'">← 返回首页 / BACK_TO_HOME</p>
+        </div>
       </div>
     </div>
   `;
+
+  // Dynamic Carousel Animation Logic
+  const slides = container.querySelectorAll('.auth-slide') as NodeListOf<HTMLElement>;
+  if (slides.length > 1) {
+    let currentSlide = 0;
+    const slideInterval = setInterval(() => {
+      if (!document.body.contains(container)) {
+        clearInterval(slideInterval);
+        return;
+      }
+      slides[currentSlide].style.opacity = '0';
+      currentSlide = (currentSlide + 1) % slides.length;
+      slides[currentSlide].style.opacity = '1';
+    }, carouselSpeed);
+  }
+
 
   document.getElementById('back-home-btn')?.addEventListener('click', () => onNavigate('home'));
   
@@ -135,7 +184,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
       <div id="admin-matrix-container" class="ba-scrollbar" style="flex: 1; display: flex; flex-flow: column wrap; gap: 1.5rem; padding: 1rem 4rem 4rem 4rem; overflow-x: auto; width: 100%; align-content: flex-start; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);">
         
         <!-- Tile 1: Site Identity -->
-        <div class="admin-tile" data-lenis-prevent data-module="identity" style="width: 280px; height: 200px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+        <div class="admin-tile" data-lenis-prevent data-module="identity" style="width: 280px; height: 200px; background: transparent; border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
            <div class="tile-preview">
               <div style="font-size: 2.5rem; margin-bottom: 1rem;">🆔</div>
               <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">基础身份</h3>
@@ -175,7 +224,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         </div>
 
         <!-- Tile 2: Visuals -->
-        <div class="admin-tile" data-lenis-prevent data-module="visuals" style="width: 280px; height: 200px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+        <div class="admin-tile" data-lenis-prevent data-module="visuals" style="width: 280px; height: 200px; background: transparent; border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
            <div class="tile-preview">
               <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎨</div>
               <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">视觉呈现</h3>
@@ -221,7 +270,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         </div>
 
         <!-- Tile 3: Media Center (Gallery + Assets) -->
-        <div class="admin-tile" data-lenis-prevent data-module="media" style="width: 580px; height: 415px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+        <div class="admin-tile" data-lenis-prevent data-module="media" style="width: 580px; height: 415px; background: transparent; border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
            <div class="tile-preview">
               <div style="font-size: 2.5rem; margin-bottom: 1rem;">🖼️</div>
               <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">媒体中心</h3>
@@ -269,7 +318,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         </div>
 
         <!-- Tile 4: Home Sections -->
-        <div class="admin-tile" data-lenis-prevent data-module="home-mid" style="width: 280px; height: 200px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+        <div class="admin-tile" data-lenis-prevent data-module="home-mid" style="width: 280px; height: 200px; background: transparent; border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
            <div class="tile-preview">
               <div style="font-size: 2.5rem; margin-bottom: 1rem;">🏠</div>
               <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">首页配置</h3>
@@ -303,7 +352,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         </div>
 
         <!-- Tile 5: Navigation -->
-        <div class="admin-tile" data-lenis-prevent data-module="navigation" style="width: 280px; height: 200px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+        <div class="admin-tile" data-lenis-prevent data-module="navigation" style="width: 280px; height: 200px; background: transparent; border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
            <div class="tile-preview">
               <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔗</div>
               <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">导航与页面</h3>
@@ -331,7 +380,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         </div>
 
         <!-- Tile 6: User Management -->
-        <div class="admin-tile" data-lenis-prevent data-module="users" style="width: 280px; height: 200px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+        <div class="admin-tile" data-lenis-prevent data-module="users" style="width: 280px; height: 200px; background: transparent; border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
            <div class="tile-preview">
               <div style="font-size: 2.5rem; margin-bottom: 1rem;">👥</div>
               <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">用户管理</h3>
@@ -349,7 +398,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         </div>
 
         <!-- Tile 7: Article Library (Large Preview) -->
-        <div class="admin-tile" data-lenis-prevent data-module="articles" style="width: 580px; height: 415px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+        <div class="admin-tile" data-lenis-prevent data-module="articles" style="width: 580px; height: 415px; background: transparent; border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
            <div class="tile-preview">
               <div style="font-size: 2.5rem; margin-bottom: 1rem;">📄</div>
               <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">文稿管理中心</h3>
@@ -419,7 +468,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         </div>
 
         <!-- Tile 8: System Maintenance -->
-        <div class="admin-tile" data-lenis-prevent data-module="system" style="width: 280px; height: 200px; background: rgba(255,255,255,0.95); border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+        <div class="admin-tile" data-lenis-prevent data-module="system" style="width: 280px; height: 200px; background: transparent; border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
            <div class="tile-preview">
               <div style="font-size: 2.5rem; margin-bottom: 1rem;">🛡️</div>
               <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">系统运维</h3>
@@ -431,17 +480,86 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
                  <button class="close-tile-btn" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 12px; cursor: pointer;">返回矩阵</button>
               </div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                 <div style="padding: 2rem; background: #fff1f2; border-radius: 24px;">
-                    <h4 style="color: #be123c; margin-top: 0;">清空版聊数据</h4>
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
-                       <input type="datetime-local" id="chat-del-start" style="flex:1; padding: 0.8rem; border-radius: 10px; border: 1px solid #fecaca;">
-                       <input type="datetime-local" id="chat-del-end" style="flex:1; padding: 0.8rem; border-radius: 10px; border: 1px solid #fecaca;">
+                 <div style="padding: 2rem; background: rgba(255, 71, 87, 0.1); border-radius: 24px; border: 1px solid rgba(255, 71, 87, 0.2);">
+                    <h4 style="color: #ff4757; margin-top: 0;">版聊清理</h4>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+                       <input type="datetime-local" id="chat-del-start" style="flex:1; padding: 0.5rem; border-radius: 8px; border: 1px solid #ddd;">
+                       <input type="datetime-local" id="chat-del-end" style="flex:1; padding: 0.5rem; border-radius: 8px; border: 1px solid #ddd;">
                     </div>
-                    <button id="clear-global-chat-btn" style="width: 100%; padding: 1rem; background: #ff4757; color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer;">物理清除</button>
+                    <button id="clear-global-chat-btn" style="width: 100%; padding: 0.8rem; background: #ff4757; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;">立即清除</button>
                  </div>
-                 <div style="padding: 2rem; background: #f8fafc; border-radius: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                    <button id="clear-all-private-chat-btn" style="width: 100%; padding: 1.5rem; background: #1e293b; color: white; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 1.1rem;">一键清除全域私聊数据</button>
-                    <p style="margin-top: 1rem; color: #94a3b8; font-size: 0.8rem;">* 此操作不可逆，请谨慎操作</p>
+                 
+                 <div style="padding: 2rem; background: rgba(30, 41, 59, 0.05); border-radius: 24px; border: 1px solid rgba(30, 41, 59, 0.1);">
+                    <h4 style="color: #1e293b; margin-top: 0;">私聊精细管理</h4>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                       <input type="text" id="chat-del-u1" placeholder="用户 ID 1" style="flex:1; padding: 0.5rem; border-radius: 8px; border: 1px solid #ddd;">
+                       <input type="text" id="chat-del-u2" placeholder="用户 ID 2" style="flex:1; padding: 0.5rem; border-radius: 8px; border: 1px solid #ddd;">
+                    </div>
+                    <p style="font-size: 0.7rem; color: #64748b; margin-bottom: 1rem;">* 单 ID 清除个人记录；双 ID 清除对话</p>
+                    <button id="clear-refined-chat-btn" style="width: 100%; padding: 0.8rem; background: #1e293b; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;">执行</button>
+                    <button id="clear-all-private-chat-btn" style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; background: transparent; color: #ef4444; border: 1px dashed #ef4444; border-radius: 10px; cursor: pointer; font-size: 0.75rem;">一键清除全域私聊</button>
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        <!-- Tile 9: Auth Aesthetics -->
+        <div class="admin-tile" data-lenis-prevent data-module="auth-ui" style="width: 280px; height: 200px; background: transparent; border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+           <div class="tile-preview">
+              <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔐</div>
+              <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">登入页视觉</h3>
+              <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.8rem;">配置登录/注册页背景及插图...</p>
+           </div>
+           <div class="tile-full-content" style="display: none; opacity: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                 <h2 style="margin:0; color: #1e293b;">登入页视觉 / AUTH UI</h2>
+                 <div style="display: flex; gap: 1rem;">
+                    <button class="save-card-btn action-btn" data-type="auth-ui" style="padding: 0.6rem 1.5rem; background: var(--theme-primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">保存修改</button>
+                    <button class="close-tile-btn" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 12px; cursor: pointer;">返回矩阵</button>
+                 </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                       <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">卡片透明度 (${config.authGlassOpacity ?? 0.92})</label>
+                       <input type="range" id="cfg-authGlassOpacity" min="0" max="1" step="0.01" value="${config.authGlassOpacity ?? 0.92}" style="width: 100%;">
+                    </div>
+                    <div>
+                       <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">卡片模糊度 (${config.authGlassBlur ?? 30}px)</label>
+                       <input type="range" id="cfg-authGlassBlur" min="0" max="50" step="1" value="${config.authGlassBlur ?? 30}" style="width: 100%;">
+                    </div>
+                 </div>
+
+                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+                    <div>
+                       <label style="font-size: 0.75rem; color: #64748b; display: block; margin-bottom: 0.5rem; font-weight: 700;">轮播速度 (${config.authCarouselSpeed ?? 4}s)</label>
+                       <input type="range" id="cfg-authCarouselSpeed" min="1" max="20" step="1" value="${config.authCarouselSpeed ?? 4}" style="width: 100%;">
+                    </div>
+                    <div>
+                       <label style="font-size: 0.75rem; color: #64748b; display: block; margin-bottom: 0.5rem; font-weight: 700;">背景亮度 (${config.authBgBrightness ?? 0.4})</label>
+                       <input type="range" id="cfg-authBgBrightness" min="0" max="1" step="0.05" value="${config.authBgBrightness ?? 0.4}" style="width: 100%;">
+                    </div>
+                    <div>
+                       <label style="font-size: 0.75rem; color: #64748b; display: block; margin-bottom: 0.5rem; font-weight: 700;">背景模糊 (${config.authBgBlur ?? 8}px)</label>
+                       <input type="range" id="cfg-authBgBlur" min="0" max="50" step="1" value="${config.authBgBlur ?? 8}" style="width: 100%;">
+                    </div>
+                 </div>
+
+                 <div>
+                    <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">全屏背景图片 (URL)</label>
+                    <div style="display: flex; gap: 1rem;">
+                       <input id="cfg-authBackgroundUrl" value="${config.authBackgroundUrl || ''}" placeholder="https://..." style="flex:1; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px;">
+                       <button id="auth-bg-upload-btn" style="padding: 0 1.5rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 15px; cursor: pointer; font-weight: bold;">上传</button>
+                       <input type="file" id="auth-bg-upload" accept="image/*" style="display: none;">
+                    </div>
+                 </div>
+                 <div>
+                    <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">兜底装饰插图 (URL)</label>
+                    <div style="display: flex; gap: 1rem;">
+                       <input id="cfg-authSideImageUrl" value="${config.authSideImageUrl || ''}" placeholder="https://..." style="flex:1; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px;">
+                       <button id="auth-side-upload-btn" style="padding: 0 1.5rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 15px; cursor: pointer; font-weight: bold;">上传</button>
+                       <input type="file" id="auth-side-upload" accept="image/*" style="display: none;">
+                    </div>
                  </div>
               </div>
            </div>
@@ -466,6 +584,9 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
       .admin-tile {
         break-inside: avoid;
         user-select: none;
+        background: rgba(255, 255, 255, var(--glass-opacity)) !important;
+        backdrop-filter: blur(var(--glass-blur)) !important;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
       }
       
       .admin-tile:hover {
@@ -497,7 +618,8 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         max-width: 1400px !important;
         z-index: 1000 !important;
         cursor: default !important;
-        background: white !important;
+        background: rgba(255, 255, 255, var(--glass-opacity)) !important;
+        backdrop-filter: blur(var(--glass-blur)) !important;
         box-shadow: 0 100px 200px rgba(0,0,0,0.6) !important;
         padding: 3rem !important;
         border: 2px solid var(--theme-primary) !important;
@@ -635,6 +757,51 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     }
   });
 
+  // Auth Page Customization Uploads
+  const authBgBtn = document.getElementById('auth-bg-upload-btn');
+  const authBgInput = document.getElementById('auth-bg-upload') as HTMLInputElement;
+  const authBgUrlInput = document.getElementById('cfg-authBackgroundUrl') as HTMLInputElement;
+
+  authBgBtn?.addEventListener('click', () => authBgInput.click());
+  authBgInput?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    authBgBtn!.textContent = '...';
+    try {
+      const res = await fetch(`http://${window.location.hostname}:3001/api/upload?type=asset`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        authBgUrlInput.value = data.url;
+        UI.toast('背景上传成功', 'success');
+      }
+    } catch (e) { UI.toast('上传失败', 'error'); }
+    finally { authBgBtn!.textContent = '上传'; }
+  });
+
+  const authSideBtn = document.getElementById('auth-side-upload-btn');
+  const authSideInput = document.getElementById('auth-side-upload') as HTMLInputElement;
+  const authSideUrlInput = document.getElementById('cfg-authSideImageUrl') as HTMLInputElement;
+
+  authSideBtn?.addEventListener('click', () => authSideInput.click());
+  authSideInput?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    authSideBtn!.textContent = '...';
+    try {
+      const res = await fetch(`http://${window.location.hostname}:3001/api/upload?type=asset`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        authSideUrlInput.value = data.url;
+        UI.toast('插图上传成功', 'success');
+      }
+    } catch (e) { UI.toast('上传失败', 'error'); }
+    finally { authSideBtn!.textContent = '上传'; }
+  });
+
   // Save Config
   // Delegated Save Config for Cards
   document.querySelectorAll('.save-card-btn').forEach(btn => {
@@ -657,6 +824,14 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         newConfig.homeMidTitle = (document.getElementById('cfg-homeMidTitle') as HTMLInputElement).value;
         newConfig.homeMidContent = (document.getElementById('cfg-homeMidContent') as HTMLTextAreaElement).value;
         newConfig.announcement = (document.getElementById('cfg-announcement') as HTMLTextAreaElement).value;
+      } else if (type === 'auth-ui') {
+        newConfig.authBackgroundUrl = (document.getElementById('cfg-authBackgroundUrl') as HTMLInputElement).value;
+        newConfig.authSideImageUrl = (document.getElementById('cfg-authSideImageUrl') as HTMLInputElement).value;
+        newConfig.authGlassOpacity = parseFloat((document.getElementById('cfg-authGlassOpacity') as HTMLInputElement).value);
+        newConfig.authGlassBlur = parseInt((document.getElementById('cfg-authGlassBlur') as HTMLInputElement).value);
+        newConfig.authCarouselSpeed = parseInt((document.getElementById('cfg-authCarouselSpeed') as HTMLInputElement).value);
+        newConfig.authBgBrightness = parseFloat((document.getElementById('cfg-authBgBrightness') as HTMLInputElement).value);
+        newConfig.authBgBlur = parseInt((document.getElementById('cfg-authBgBlur') as HTMLInputElement).value);
       }
 
       await BlogStore.saveConfig(newConfig);
@@ -1026,14 +1201,22 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     }
   });
 
-  document.getElementById('clear-targeted-private-btn')?.addEventListener('click', async () => {
-    const userA = (document.getElementById('chat-del-user-a') as HTMLInputElement).value;
-    const userB = (document.getElementById('chat-del-user-b') as HTMLInputElement).value;
-    if (!userA || !userB) return UI.toast("请填入两个用户的 ID", 'error');
+  document.getElementById('clear-refined-chat-btn')?.addEventListener('click', async () => {
+    const userA = (document.getElementById('chat-del-u1') as HTMLInputElement).value;
+    const userB = (document.getElementById('chat-del-u2') as HTMLInputElement).value;
+    if (!userA) return UI.toast("请至少填入一个用户 ID", 'error');
     
-    if (await UI.confirm(`确定要清空 ID ${userA} 与 ID ${userB} 之间的私聊记录吗？`)) {
-      const apiHost = window.location.hostname;
-      const res = await fetch(`http://${apiHost}:3001/api/admin/chat?type=private&userId=${userA}&targetUserId=${userB}${getDelParams()}`, {
+    let msg = '';
+    let url = `http://${window.location.hostname}:3001/api/admin/chat?type=private&userId=${userA}${getDelParams()}`;
+    if (userB) {
+      msg = `确定要清空 ID ${userA} 与 ID ${userB} 之间的私聊记录吗？`;
+      url += `&targetUserId=${userB}`;
+    } else {
+      msg = `确定要清空用户 ID ${userA} 的【所有】私聊记录吗？`;
+    }
+
+    if (await UI.confirm(msg)) {
+      const res = await fetch(url, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('fawang_token')}` }
       });
