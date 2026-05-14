@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog | Loading...</title>
+  </head>
+  <body>
+    <!-- Background Canvas -->
+    <div id="canvas-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;"></div>
+
+    <div id="app">
+      <!-- SIDEBAR (Argon Reconstruction) -->
+      <aside class="sidebar">
+        <div class="author-section" id="sidebar-auth-section" style="min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          
+          <!-- Logged In State -->
+          <div id="auth-logged-in" style="display: none; text-align: center; width: 100%;">
+            <a href="#" data-link="profile" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+              <div class="avatar-container">
+                <img id="sidebar-avatar" src="" alt="User Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+              </div>
+              <h2 id="sidebar-author-name" class="author-name"></h2>
+            </a>
+            <p id="sidebar-author-role" style="font-size: 0.8rem; margin-top: 5px; opacity: 0.7;"></p>
+            <p id="sidebar-author-desc" style="font-size: 0.8rem; margin-top: 10px; opacity: 0.6; line-height: 1.4;"></p>
+          </div>
+
+          <!-- Logged Out State -->
+          <div id="auth-logged-out" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+            <a href="#" data-link="login" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; color: inherit; transition: opacity 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+              <div class="avatar-container" style="background: #f1f5f9; display: flex; align-items: center; justify-content: center;">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              </div>
+              <h2 class="author-name" style="color: #64748b; font-size: 1rem; margin-top: 10px;">未登录 (点击认证)</h2>
+            </a>
+          </div>
+
+        </div>
+
+        <div class="sidebar-content" data-lenis-prevent="true" style="flex: 1; overflow-y: auto; padding-right: 5px;">
+          <nav>
+            <ul class="sidebar-nav">
+              <li><a href="#" class="active" data-link="home">首页 / Terminal</a></li>
+              <li><a href="#" data-link="articles">文章 / Articles</a></li>
+              <li><a href="#" data-link="about">关于我 / Identity</a></li>
+              <li id="nav-admin-item" style="display: none;"><a href="#" data-link="admin" style="margin-top: 1rem; border: 1px dashed var(--theme-primary); color: var(--theme-primary);">[ 控制台 / ADMIN ]</a></li>
+            </ul>
+          </nav>
+
+          <div style="margin-top: 2rem; font-size: 0.75rem; padding: 1.5rem; background: rgba(94, 114, 228, 0.05); border-radius: 12px; border: 1px solid rgba(94, 114, 228, 0.1);">
+            <h4 style="color: var(--theme-primary); margin-bottom: 0.5rem; font-size: 0.85rem;">公告板 / SIGNAL</h4>
+            <p id="sidebar-announcement" style="line-height: 1.6; opacity: 0.8;">加载中...</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+        <div id="content-area"></div>
+      </main>
+    </div>
+
+    <!-- Page Transition -->
+    <div id="transition-overlay"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
