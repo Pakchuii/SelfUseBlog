@@ -264,6 +264,14 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
                        <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">首页副标题</label>
                        <input id="cfg-bannerSubtitle" value="${config.bannerSubtitle || ''}" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b;">
                     </div>
+                    <div>
+                       <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">首页过渡栏背景 (Transition BG)</label>
+                       <div style="display: flex; gap: 0.8rem;">
+                          <input id="cfg-home_transition_bg" value="${config.home_transition_bg || ''}" style="flex: 1; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b;">
+                          <button id="cfg-transition-upload-btn" style="padding: 0 1.2rem; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 15px; cursor: pointer;">↑</button>
+                          <input type="file" id="cfg-transition-upload" accept="image/*" style="display: none;">
+                       </div>
+                    </div>
                  </div>
               </div>
            </div>
@@ -356,7 +364,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
            <div class="tile-preview">
               <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔗</div>
               <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">导航与页面</h3>
-              <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.8rem;">JSON 导航链、About 页面...</p>
+              <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.8rem;">JSON 导航链配置...</p>
            </div>
            <div class="tile-full-content" style="display: none; opacity: 0;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
@@ -366,15 +374,106 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
                     <button class="close-tile-btn" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 12px; cursor: pointer;">返回</button>
                  </div>
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+              <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
                  <div>
                     <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">JSON 导航配置</label>
                     <textarea id="cfg-navLinks" style="width: 100%; padding: 1rem; background: #1e293b; border: none; border-radius: 15px; color: #55efc4; font-family: var(--font-mono); font-size: 0.9rem; min-height: 300px;">${config.navLinks || ''}</textarea>
                  </div>
-                 <div>
-                    <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">关于页面 Markdown</label>
-                    <textarea id="cfg-aboutContent" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b; min-height: 300px;">${config.aboutContent || ''}</textarea>
+              </div>
+           </div>
+        </div>
+
+        <!-- Tile 6: About Page Management (NEW) -->
+        <div class="admin-tile" data-lenis-prevent data-module="about" style="width: 280px; height: 200px; background: transparent; border-radius: 24px; padding: 1.5rem; cursor: pointer; position: relative; overflow: hidden; border: 1px solid white; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+           <div class="tile-preview">
+              <div style="font-size: 2.5rem; margin-bottom: 1rem;">👤</div>
+              <h3 style="margin: 0; color: #1e293b; font-size: 1.2rem;">关于我管理</h3>
+              <p style="margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.8rem;">精细化调整 Identity Dashboard 文字与图片...</p>
+           </div>
+           <div class="tile-full-content" style="display: none; opacity: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                 <h2 style="margin:0; color: #1e293b;">关于我管理 / ABOUT_IDENTITY</h2>
+                 <div style="display: flex; gap: 1rem;">
+                    <button class="save-card-btn action-btn" data-type="about" style="padding: 0.6rem 1.5rem; background: var(--theme-primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">保存所有更改</button>
+                    <button class="close-tile-btn" style="padding: 0.6rem 1.2rem; background: #f1f5f9; color: #64748b; border: none; border-radius: 12px; cursor: pointer;">返回矩阵</button>
                  </div>
+              </div>
+              
+              <div class="ba-scrollbar" style="height: 75vh; overflow-y: auto; padding-right: 1.5rem; scrollbar-width: thin;">
+                  
+                  <!-- Section 1: Banner Carousel & Identity -->
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px dashed #e2e8f0;">
+                    <div>
+                       <h4 style="margin: 0 0 1rem 0; color: var(--theme-primary);">顶部 Banner 轮播 / BANNER_CAROUSEL</h4>
+                       <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                          ${[1, 2, 3].map(num => `
+                             <div>
+                                <label style="font-size: 0.7rem; color: #94a3b8; font-weight: 700;">BANNER_0${num} URL</label>
+                                <input id="cfg-about_banner_${num}_img" value="${(config as any)[`about_banner_${num}_img`] || ''}" style="width: 100%; padding: 0.6rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.8rem;">
+                             </div>
+                          `).join('')}
+                       </div>
+                    </div>
+                    <div>
+                       <h4 style="margin: 0 0 1rem 0; color: var(--theme-primary);">身份识别与吉祥物 / IDENTITY</h4>
+                       <div style="display: flex; flex-direction: column; gap: 1rem;">
+                          <div>
+                             <label style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 0.4rem;">身份标题 (pakchuii, Visual Architect...)</label>
+                             <input id="cfg-about_identity_title" value="${config.about_identity_title || ''}" style="width: 100%; padding: 0.8rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                          </div>
+                          <div>
+                             <label style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 0.4rem;">吉祥物图片 URL (Mascot)</label>
+                             <input id="cfg-about_mascot" value="${config.about_mascot || ''}" style="width: 100%; padding: 0.8rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+
+                 <!-- Identity Description -->
+                 <div style="margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px dashed #e2e8f0;">
+                    <label style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 0.4rem;">身份详细描述文本</label>
+                    <textarea id="cfg-about_identity_desc" style="width: 100%; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; min-height: 100px; resize: none;">${config.about_identity_desc || ''}</textarea>
+                 </div>
+
+                 <!-- Section 2: Feature Carousel Items -->
+                 <h4 style="margin: 0 0 1rem 0; color: var(--theme-primary);">展示卡片轮播 (右侧) / FEATURE_CAROUSEL</h4>
+                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px dashed #e2e8f0;">
+                    ${[1, 2, 3].map(num => `
+                       <div style="background: #f8fafc; padding: 1.2rem; border-radius: 15px; border: 1px solid #f1f5f9;">
+                          <div style="font-weight: 800; font-size: 0.7rem; color: var(--theme-primary); margin-bottom: 1rem;">CARD_SLIDE_0${num}</div>
+                          <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                             <input id="cfg-about_carousel_${num}_img" value="${(config as any)[`about_carousel_${num}_img`] || ''}" placeholder="图片 URL" style="width: 100%; padding: 0.6rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.8rem;">
+                             <input id="cfg-about_carousel_${num}_title" value="${(config as any)[`about_carousel_${num}_title`] || ''}" placeholder="标题" style="width: 100%; padding: 0.6rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.8rem; font-weight: bold;">
+                             <textarea id="cfg-about_carousel_${num}_desc" placeholder="描述正文" style="width: 100%; padding: 0.6rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; min-height: 60px; resize: none;">${(config as any)[`about_carousel_${num}_desc`] || ''}</textarea>
+                          </div>
+                       </div>
+                    `).join('')}
+                 </div>
+
+                 <!-- Section 3: Profile & Visual Units -->
+                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; padding-bottom: 3rem;">
+                    <div>
+                       <h4 style="margin: 0 0 1rem 0; color: var(--theme-primary);">底部档案卡片 / PROFILE</h4>
+                       <div style="display: flex; flex-direction: column; gap: 1rem;">
+                          <input id="cfg-about_profile_name" value="${config.about_profile_name || ''}" placeholder="档案名称" style="width: 100%; padding: 0.8rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                          <textarea id="cfg-about_profile_bio" style="width: 100%; padding: 0.8rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; min-height: 80px; resize: none;" placeholder="档案简介...">${config.about_profile_bio || ''}</textarea>
+                       </div>
+                    </div>
+                    <div>
+                       <h4 style="margin: 0 0 1rem 0; color: var(--theme-primary);">底部展示单元 / VISUALS</h4>
+                       <div style="display: flex; flex-direction: column; gap: 1rem;">
+                          <div>
+                             <label style="font-size: 0.7rem; color: #94a3b8; font-weight: 700;">VISUAL_UNIT_01 (IMG URL)</label>
+                             <input id="cfg-about_visual_1_img" value="${config.about_visual_1_img || ''}" style="width: 100%; padding: 0.8rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-top: 0.4rem;">
+                          </div>
+                          <div>
+                             <label style="font-size: 0.7rem; color: #94a3b8; font-weight: 700;">VISUAL_UNIT_02 (IMG URL)</label>
+                             <input id="cfg-about_visual_2_img" value="${config.about_visual_2_img || ''}" style="width: 100%; padding: 0.8rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-top: 0.4rem;">
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+
               </div>
            </div>
         </div>
@@ -725,6 +824,29 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     }
   });
 
+  // Transition BG Upload Logic
+  const transUploadBtn = document.getElementById('cfg-transition-upload-btn');
+  const transUploadInput = document.getElementById('cfg-transition-upload') as HTMLInputElement;
+  const transUrlInput = document.getElementById('cfg-home_transition_bg') as HTMLInputElement;
+
+  transUploadBtn?.addEventListener('click', () => transUploadInput.click());
+  transUploadInput?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    transUploadBtn!.textContent = '...';
+    try {
+      const res = await fetch(`${BlogStore.getApiBase()}/upload?type=asset`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        transUrlInput.value = data.url;
+        UI.toast('过渡栏背景上传成功', 'success');
+      }
+    } catch (e) { UI.toast('上传失败', 'error'); }
+    finally { transUploadBtn!.textContent = '↑'; }
+  });
+
   // Global Bg Upload Logic
   const globalBgUploadBtn = document.getElementById('cfg-global-bg-upload-btn');
   const globalBgUploadInput = document.getElementById('cfg-global-bg-upload') as HTMLInputElement;
@@ -818,6 +940,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         newConfig.bannerImageUrl = (document.getElementById('cfg-bannerImageUrl') as HTMLInputElement).value;
         newConfig.globalBackgroundUrl = (document.getElementById('cfg-globalBackgroundUrl') as HTMLInputElement).value;
         newConfig.bannerSubtitle = (document.getElementById('cfg-bannerSubtitle') as HTMLInputElement).value;
+        newConfig.home_transition_bg = (document.getElementById('cfg-home_transition_bg') as HTMLInputElement).value;
       } else if (type === 'home-mid') {
         newConfig.homeMidTitle = (document.getElementById('cfg-homeMidTitle') as HTMLInputElement).value;
         newConfig.homeMidContent = (document.getElementById('cfg-homeMidContent') as HTMLTextAreaElement).value;
@@ -830,6 +953,25 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         newConfig.authCarouselSpeed = parseInt((document.getElementById('cfg-authCarouselSpeed') as HTMLInputElement).value);
         newConfig.authBgBrightness = parseFloat((document.getElementById('cfg-authBgBrightness') as HTMLInputElement).value);
         newConfig.authBgBlur = parseInt((document.getElementById('cfg-authBgBlur') as HTMLInputElement).value);
+      } else if (type === 'about') {
+        [1, 2, 3].forEach(num => {
+          (newConfig as any)[`about_banner_${num}_img`] = (document.getElementById(`cfg-about_banner_${num}_img`) as HTMLInputElement).value;
+        });
+        
+        newConfig.about_mascot = (document.getElementById('cfg-about_mascot') as HTMLInputElement).value;
+        newConfig.about_identity_title = (document.getElementById('cfg-about_identity_title') as HTMLInputElement).value;
+        newConfig.about_identity_desc = (document.getElementById('cfg-about_identity_desc') as HTMLTextAreaElement).value;
+        
+        [1, 2, 3].forEach(num => {
+          (newConfig as any)[`about_carousel_${num}_img`] = (document.getElementById(`cfg-about_carousel_${num}_img`) as HTMLInputElement).value;
+          (newConfig as any)[`about_carousel_${num}_title`] = (document.getElementById(`cfg-about_carousel_${num}_title`) as HTMLInputElement).value;
+          (newConfig as any)[`about_carousel_${num}_desc`] = (document.getElementById(`cfg-about_carousel_${num}_desc`) as HTMLTextAreaElement).value;
+        });
+
+        newConfig.about_profile_name = (document.getElementById('cfg-about_profile_name') as HTMLInputElement).value;
+        newConfig.about_profile_bio = (document.getElementById('cfg-about_profile_bio') as HTMLTextAreaElement).value;
+        newConfig.about_visual_1_img = (document.getElementById('cfg-about_visual_1_img') as HTMLInputElement).value;
+        newConfig.about_visual_2_img = (document.getElementById('cfg-about_visual_2_img') as HTMLInputElement).value;
       }
 
       await BlogStore.saveConfig(newConfig);
@@ -850,10 +992,15 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
       return UI.toast('导航配置 JSON 格式错误，请检查！', 'error');
     }
 
+    const aboutMascotUrl = (document.getElementById('cfg-aboutMascotUrl') as HTMLInputElement).value;
+    const aboutBannerUrl = (document.getElementById('cfg-aboutBannerUrl') as HTMLInputElement).value;
+
     const newConfig = {
       ...BlogStore.getConfig(),
       aboutContent,
-      navLinks: navLinksStr
+      navLinks: navLinksStr,
+      aboutMascotUrl,
+      aboutBannerUrl
     };
     
     BlogStore.saveConfig(newConfig).then(() => {

@@ -95,7 +95,12 @@ export class Router {
     await new Promise(r => setTimeout(r, 120));
 
     // --- Execute view change while fully covered ---
-    renderView();
+    try {
+      renderView();
+    } catch (e) {
+      console.error("View rendering failed during transition:", e);
+    }
+    
     window.scrollTo(0, 0);
 
     // --- PHASE 2: Sweep Out (reverse direction) ---

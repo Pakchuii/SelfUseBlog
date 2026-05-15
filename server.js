@@ -54,8 +54,10 @@ db.serialize(() => {
     thumbnailUrl TEXT,
     excerpt TEXT,
     content TEXT,
-    date TEXT
+    date TEXT,
+    views INTEGER DEFAULT 0
   )`);
+  db.run(`ALTER TABLE articles ADD COLUMN views INTEGER DEFAULT 0`, (err) => {});
 
   // Comments Table
   db.run(`CREATE TABLE IF NOT EXISTS comments (
@@ -113,7 +115,28 @@ db.serialize(() => {
         authorDesc: "痴迷于安全技术的小白帽...\\n\\n\"孩儿立志出乡关，学不成名誓不还。\"",
         announcement: "记录自己技术增长过程的博客~\\n孩儿立志出乡关，学不成名誓不还。",
         bannerImageUrl: "",
-        bannerSubtitle: "Life is a coding, I will debug it."
+        bannerSubtitle: "Life is a coding, I will debug it.",
+        // About Page Configs
+        about_banner_1_img: "/uploads/about_banner_1.png",
+        about_banner_2_img: "/uploads/about_banner_2.png",
+        about_banner_3_img: "/uploads/about_banner_3.png",
+        about_mascot: "/uploads/mascot.png",
+        about_identity_title: "你好，我是 Pakchuii",
+        about_identity_desc: "痴迷于安全技术的小白帽...\"孩儿立志出乡关，学不成名誓不还。\"",
+        about_profile_name: "Pakchuii",
+        about_profile_bio: "痴迷于安全技术的小白帽...\\n\"孩儿立志出乡关，学不成名誓不还...\"",
+        about_carousel_1_img: "/uploads/carousel_1.png",
+        about_carousel_1_title: "PROJECT: NEURAL_NET_v2",
+        about_carousel_1_desc: "基于神经网络的实时数据可视化阵列。采用了最新的高密度点云渲染技术。",
+        about_carousel_2_img: "/uploads/carousel_2.png",
+        about_carousel_2_title: "CORE_SYNC // 核心同步",
+        about_carousel_2_desc: "系统多维度数据流同步中心。确保所有子系统在毫秒级延迟内达成一致。",
+        about_carousel_3_img: "/uploads/about_banner.png",
+        about_carousel_3_title: "DASHBOARD_v3 // 视角切换",
+        about_carousel_3_desc: "正在全屏扫描系统架构... 身份识别正常。欢迎回来，Pakchuii。",
+        about_visual_1_img: "/uploads/about_card_1.png",
+        about_visual_2_img: "/uploads/about_card_2.png",
+        home_transition_bg: ""
       };
       for (const [k, v] of Object.entries(defaultCfg)) {
         db.run(`INSERT INTO config (key, value) VALUES (?, ?)`, [k, v]);
@@ -301,6 +324,13 @@ app.post('/api/articles/:id/comments', authenticate, (req, res) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true });
     });
+});
+
+app.post('/api/articles/:id/view', (req, res) => {
+  db.run(`UPDATE articles SET views = views + 1 WHERE id = ?`, [req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
 });
 
 // --- ASSETS API ---

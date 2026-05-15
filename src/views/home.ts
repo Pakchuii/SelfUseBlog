@@ -11,12 +11,12 @@ export function renderHome(container: HTMLElement, onNavigate: (to: string, para
   if (isVideo) {
     heroBannerHtml = `
       <div style="padding: 2rem 5rem 0 5rem; max-width: 1100px; margin: 0 auto;">
-        <section class="hero-banner" style="height: 300px; padding:0; position:relative; border-radius: 24px; box-shadow: 0 15px 45px rgba(0,0,0,0.1); background: var(--card-bg); backdrop-filter: blur(var(--glass-blur)); overflow: hidden;">
+        <section class="hero-banner glass-premium" style="height: 300px; padding:0; position:relative; border-radius: 24px; box-shadow: 0 15px 45px rgba(0,0,0,0.1); overflow: hidden;">
           <video autoplay loop muted playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.8;">
             <source src="${config.bannerImageUrl}">
           </video>
           <div style="position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(to right, rgba(0,0,0,0.4), transparent); z-index: 1;"></div>
-          <div style="position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; height: 100%; padding: 0 4rem;">
+          <div style="position: relative; z-index: 10; display: flex; flex-direction: column; justify-content: center; height: 100%; padding: 0 4rem; transform: translateZ(30px); pointer-events: auto;">
             <h1 style="text-shadow: 0 4px 12px rgba(0,0,0,0.3);">${config.siteTitle || ''}</h1>
             <p class="subtitle" style="text-shadow: 0 2px 8px rgba(0,0,0,0.3);">${config.bannerSubtitle || ''}</p>
           </div>
@@ -29,9 +29,11 @@ export function renderHome(container: HTMLElement, onNavigate: (to: string, para
       : `background: var(--fawang-gradient);`;
     heroBannerHtml = `
       <div style="padding: 2rem 5rem 0 5rem; max-width: 1100px; margin: 0 auto;">
-        <section class="hero-banner" style="height: 300px; ${heroStyle} border-radius: 24px; box-shadow: 0 15px 45px rgba(0,0,0,0.1); position:relative; display: flex; flex-direction: column; justify-content: center; padding: 0 4rem; backdrop-filter: blur(var(--glass-blur));">
-          <h1 style="text-shadow: 0 4px 12px rgba(0,0,0,0.3);">${config.siteTitle || ''}</h1>
-          <p class="subtitle" style="text-shadow: 0 2px 8px rgba(0,0,0,0.3);">${config.bannerSubtitle || ''}</p>
+        <section class="hero-banner glass-premium" style="height: 300px; ${heroStyle} border-radius: 24px; box-shadow: 0 15px 45px rgba(0,0,0,0.1); position:relative; display: flex; flex-direction: column; justify-content: center; padding: 0 4rem;">
+          <div style="position: relative; z-index: 10; transform: translateZ(30px); pointer-events: auto;">
+            <h1 style="text-shadow: 0 4px 12px rgba(0,0,0,0.3);">${config.siteTitle || ''}</h1>
+            <p class="subtitle" style="text-shadow: 0 2px 8px rgba(0,0,0,0.3);">${config.bannerSubtitle || ''}</p>
+          </div>
         </section>
       </div>
     `;
@@ -41,9 +43,9 @@ export function renderHome(container: HTMLElement, onNavigate: (to: string, para
     ${heroBannerHtml}
 
     <!-- Middle Section: Announcement + Gallery Carousel -->
-    <div style="padding: 1.5rem 5rem 3rem 5rem; max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 2rem;">
+    <div style="padding: 1.5rem 5rem 1rem 5rem; max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 2rem;">
       <!-- Announcement -->
-      <div style="background: var(--card-bg); backdrop-filter: blur(var(--glass-blur)); border-radius: 20px; border: 1px solid rgba(255,255,255,0.4); padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
+      <div class="glass-premium" style="border-radius: 20px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: flex; flex-direction: column;">
         <h3 style="font-family: var(--font-heading); font-size: 1.5rem; margin-bottom: 1.2rem; color: var(--theme-primary); display: flex; align-items: center; gap: 0.8rem;">
           <span style="font-size: 1.4rem;">📊</span> ${config.homeMidTitle || '进度 / PROGRESS'}
         </h3>
@@ -53,7 +55,7 @@ export function renderHome(container: HTMLElement, onNavigate: (to: string, para
       </div>
 
       <!-- Carousel -->
-      <div id="home-carousel-container" class="carousel-hover-container" style="background: var(--card-bg); backdrop-filter: blur(var(--glass-blur)); border-radius: 20px; border: 1px solid rgba(255,255,255,0.4); overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.08); position: relative; height: 300px; cursor: pointer;">
+      <div id="home-carousel-container" class="carousel-hover-container glass-premium" style="border-radius: 20px; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.08); position: relative; height: 300px; cursor: pointer;">
         <div id="home-carousel-track" style="display: flex; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);">
            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-family:var(--font-mono);">Loading Gallery...</div>
         </div>
@@ -73,9 +75,46 @@ export function renderHome(container: HTMLElement, onNavigate: (to: string, para
       </div>
     </div>
 
-    <section class="feed-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; padding: 2rem 5rem;">
-      ${articles.map(a => `
-        <article class="post-card" data-id="${a.id}" style="padding: 0; display: flex; flex-direction: column; overflow: hidden; border-radius: 12px; border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 10px 25px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 20px 40px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.05)';">
+    <!-- Transition Section: Recent Posts Header -->
+    <div style="padding: 0 5rem; max-width: 1100px; margin: 0 auto; margin-bottom: 2rem;">
+      <div class="glass-premium" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem 2rem; border-radius: 16px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+        <!-- Background Overlay for the Bar -->
+        <div style="position: absolute; inset: 0; background: url('${config.home_transition_bg || config.bannerImageUrl || ''}'); background-size: cover; background-position: center; opacity: 0.4; filter: blur(3px); z-index: 0;"></div>
+        <div style="position: absolute; inset: 0; background: linear-gradient(to right, var(--theme-primary), transparent); opacity: 0.18; z-index: 1;"></div>
+        
+        <div style="display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2;">
+          <div style="width: 3px; height: 24px; background: var(--theme-primary); border-radius: 2px; box-shadow: 0 0 8px var(--theme-primary);"></div>
+          <div>
+            <h2 style="margin: 0; font-family: var(--font-heading); font-size: 1.3rem; color: var(--text-main); letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">最新发布 // RECENT_POSTS</h2>
+            <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--theme-primary); margin-top: 2px; font-weight: bold; letter-spacing: 1px; opacity: 0.9;">SYNC_DATABASE... [STATUS: OPTIMAL]</div>
+          </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 2rem; position: relative; z-index: 2;">
+          <!-- Enhanced Simulated Audio Visualizer -->
+          <div style="display: flex; align-items: flex-end; gap: 4px; height: 24px; padding-bottom: 2px;">
+            ${[0.2, 0.5, 0.1, 0.8, 0.4, 0.9, 0.3, 0.7, 0.5, 0.2].map((delay, i) => `
+              <div style="width: 3px; height: 100%; background: var(--theme-primary); border-radius: 1.5px; animation: v-bars 0.8s ease-in-out infinite alternate; animation-delay: -${delay}s; opacity: ${0.4 + (i * 0.05)};"></div>
+            `).join('')}
+          </div>
+
+          <button id="view-all-posts" class="glass-premium" style="padding: 0.45rem 1.2rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); color: var(--text-main); font-family: var(--font-mono); font-size: 0.7rem; font-weight: bold; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);">
+            ARCHIVE_LINK <span style="font-size: 0.9rem; color: var(--theme-primary);">→</span>
+          </button>
+        </div>
+
+        <style>
+          @keyframes v-bars {
+            0% { height: 30%; }
+            100% { height: 100%; }
+          }
+        </style>
+      </div>
+    </div>
+
+    <section class="feed-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; padding: 0 5rem 4rem 5rem; max-width: 1100px; margin: 0 auto;">
+      ${[...articles].reverse().slice(0, 2).map(a => `
+        <article class="post-card glass-premium" data-id="${a.id}" style="padding: 0; display: flex; flex-direction: column; overflow: hidden; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 20px 40px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.05)';">
           ${a.thumbnailUrl ? (a.thumbnailUrl.match(/\.(mp4|webm)$/i) ? `
             <div style="width: 100%; height: 180px; position: relative;">
               <video autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover;">
@@ -193,6 +232,10 @@ export function renderHome(container: HTMLElement, onNavigate: (to: string, para
     });
 
   // Events
+  document.getElementById('view-all-posts')?.addEventListener('click', () => {
+    onNavigate('articles');
+  });
+
   document.querySelectorAll('.post-card').forEach(card => {
     card.addEventListener('click', () => {
       const id = card.getAttribute('data-id');

@@ -3,17 +3,14 @@ import gsap from 'gsap';
 export class UI {
   static toast(message: string, type: 'success' | 'error' | 'info' = 'success') {
     const toast = document.createElement('div');
-    toast.className = `fawang-toast toast-${type}`;
+    toast.className = `fawang-toast toast-${type} glass-premium`;
     toast.style.cssText = `
       position: fixed;
       top: 20px;
       left: 50%;
       transform: translateX(-50%) translateY(-20px);
-      background: var(--card-bg);
-      backdrop-filter: blur(20px);
       padding: 0.8rem 1.5rem;
       border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
       z-index: 10000;
       color: var(--text-main);
@@ -65,13 +62,10 @@ export class UI {
       `;
 
       const modal = document.createElement('div');
-      modal.className = 'fawang-modal';
+      modal.className = 'fawang-modal glass-premium';
       modal.style.cssText = `
-        background: var(--card-bg);
-        backdrop-filter: blur(30px);
         padding: 2rem;
         border-radius: 20px;
-        border: 1px solid rgba(255,255,255,0.3);
         box-shadow: 0 20px 50px rgba(0,0,0,0.2);
         max-width: 400px;
         width: 90%;
@@ -296,5 +290,50 @@ export class UI {
 
     closeBtn.onclick = (e) => { e.stopPropagation(); close(); };
     overlay.onclick = (e) => { if (e.target === overlay) close(); };
+  }
+  
+  static initTiltEffect() {
+    const applyTilt = (el: HTMLElement) => {
+      if (el.dataset.tiltInitialized || el.classList.contains('sidebar')) return;
+      el.dataset.tiltInitialized = 'true';
+
+      const THRESHOLD = 10;
+
+      el.addEventListener('mousemove', (e) => {
+        const { clientX, clientY } = e;
+        const { left, top, width, height } = el.getBoundingClientRect();
+        const centerX = left + width / 2;
+        const centerY = top + height / 2;
+        const mouseX = clientX - centerX;
+        const mouseY = clientY - centerY;
+        const rotateX = (mouseY / (height / 2)) * -THRESHOLD;
+        const rotateY = (mouseX / (width / 2)) * THRESHOLD;
+        
+        gsap.to(el, {
+          rotateX,
+          rotateY,
+          duration: 0.5,
+          ease: 'power2.out',
+          overwrite: 'auto'
+        });
+      });
+
+      el.addEventListener('mouseleave', () => {
+        gsap.to(el, {
+          rotateX: 0,
+          rotateY: 0,
+          duration: 0.5,
+          ease: 'power2.out',
+          overwrite: 'auto'
+        });
+      });
+    };
+
+    const observer = new MutationObserver(() => {
+      document.querySelectorAll('.glass-premium:not(.sidebar)').forEach(el => applyTilt(el as HTMLElement));
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+    document.querySelectorAll('.glass-premium:not(.sidebar)').forEach(el => applyTilt(el as HTMLElement));
   }
 }

@@ -9,6 +9,7 @@ export interface Article {
   excerpt: string;
   content: string;
   date: string;
+  views?: number;
   comments?: any[];
 }
 
@@ -36,6 +37,27 @@ export interface SiteConfig {
   authCarouselSpeed?: number;
   authBgBrightness?: number;
   authBgBlur?: number;
+  aboutMascotUrl?: string;
+  about_banner_1_img?: string;
+  about_banner_2_img?: string;
+  about_banner_3_img?: string;
+  about_mascot?: string;
+  about_identity_title?: string;
+  about_identity_desc?: string;
+  about_profile_name?: string;
+  about_profile_bio?: string;
+  about_carousel_1_img?: string;
+  about_carousel_1_title?: string;
+  about_carousel_1_desc?: string;
+  about_carousel_2_img?: string;
+  about_carousel_2_title?: string;
+  about_carousel_2_desc?: string;
+  about_carousel_3_img?: string;
+  about_carousel_3_title?: string;
+  about_carousel_3_desc?: string;
+  about_visual_1_img?: string;
+  about_visual_2_img?: string;
+  home_transition_bg?: string;
 }
 
 export interface User {
@@ -67,7 +89,9 @@ let config: SiteConfig = cachedConfig ? JSON.parse(cachedConfig) : {
     { title: "文章 / Articles", view: "articles" },
     { title: "关于我 / Identity", view: "about" }
   ]),
-  aboutContent: "# 关于我 / Identity\n\n痴迷于安全技术的小白帽。记录自己技术增长过程的博客。\n\n> 孩儿立志出乡关，学不成名誓不还。"
+  aboutContent: "# 关于我 / Identity\n\n痴迷于安全技术的小白帽。记录自己技术增长过程的博客。\n\n> 孩儿立志出乡关，学不成名誓不还。",
+  aboutBannerUrl: "/uploads/about_banner.png",
+  home_transition_bg: ""
 };
 
 // Try to load cached user
@@ -106,6 +130,7 @@ export const BlogStore = {
         config = { ...config, ...cfgRes };
         config.bannerImageUrl = normalizeUrl(config.bannerImageUrl) as string;
         config.avatarUrl = normalizeUrl(config.avatarUrl) as string;
+        config.home_transition_bg = normalizeUrl(config.home_transition_bg) as string;
         localStorage.setItem('fawang_config', JSON.stringify(config));
       }
       if (Array.isArray(artRes)) {
@@ -172,6 +197,10 @@ export const BlogStore = {
       body: JSON.stringify(comment)
     });
     if (res.ok) await BlogStore.init();
+  },
+
+  viewArticle: async (id: string) => {
+    await fetch(`${API_BASE}/articles/${id}/view`, { method: 'POST' });
   },
 
   getConfig: () => config,

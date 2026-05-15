@@ -1,6 +1,7 @@
 import './styles/base.css';
 import './styles/layout.css';
 import './styles/components.css';
+import './styles/about.css';
 
 import { initGlobalBackground } from './core/background';
 import { Router } from './core/router';
@@ -181,7 +182,7 @@ function showAdminTweaker() {
     <button id="tweaker-btn" style="width: 50px; height: 50px; border-radius: 50%; background: var(--theme-primary); color: white; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; transition: transform 0.3s;">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     </button>
-    <div id="tweaker-panel" style="display: none; position: absolute; bottom: 60px; right: 0; width: 250px; background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.3); border-radius: 15px; padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+    <div id="tweaker-panel" class="glass-premium" style="display: none; position: absolute; bottom: 60px; right: 0; width: 250px; border-radius: 15px; padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
       <h4 style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--theme-primary);">UI 参数实时调整</h4>
       <div style="margin-bottom: 1rem;">
         <label style="font-size: 0.75rem; color: #666; display: block; margin-bottom: 0.5rem;">毛玻璃透明度: <span id="opacity-val">0.85</span></label>
@@ -295,8 +296,6 @@ function openFilterPanel(type: string, values: string[], onNavigate: (to: string
   document.body.appendChild(overlay);
   document.body.appendChild(panel);
 
-  // Unused: const mainContent = document.querySelector('.main-content') as HTMLElement;
-
   // Animate in
   requestAnimationFrame(() => {
     overlay.style.opacity = '1';
@@ -335,8 +334,7 @@ function openFilterPanel(type: string, values: string[], onNavigate: (to: string
 
 // Navigation Handler
 export function navigateTo(view: string, params?: any) {
-  ChatUI.close(); // Close any open chat panels on navigation
-  // Route Guard
+  ChatUI.close(); 
   if (view === 'admin' && !BlogStore.isAdmin()) {
     UI.toast("Permission Denied", 'error');
     return;
@@ -346,7 +344,6 @@ export function navigateTo(view: string, params?: any) {
   }
 
   router.navigate(() => {
-    // Show/hide sidebar based on view
     const sidebar = document.querySelector('.sidebar') as HTMLElement;
     const mainContent = document.querySelector('.main-content') as HTMLElement;
 
@@ -366,21 +363,11 @@ export function navigateTo(view: string, params?: any) {
     else if (view === 'login') renderLogin(appArea, navigateTo);
     else if (view === 'admin') renderAdmin(appArea, navigateTo);
     else if (view === 'profile') renderProfile(appArea, navigateTo);
-    else {
-      appArea.innerHTML = `
-        <div style="padding: 5rem; text-align: center; color: var(--text-main);">
-          <h2 style="font-family: var(--font-heading); font-size: 3rem; margin-bottom: 1rem;">页面开发中...</h2>
-          <p>您请求的视图 [ ${view} ] 尚未定义逻辑。可以在 views_extra.ts 中添加相应的渲染函数。</p>
-          <button onclick="window.history.back()" style="margin-top: 2rem; padding: 0.8rem 2rem; background: var(--theme-primary); color: white; border: none; border-radius: 8px; cursor: pointer;">返回上一页</button>
-        </div>
-      `;
-    }
 
     window.scrollTo(0, 0);
     lenis.resize();
     hydrateUI();
 
-    // Update Active Link
     document.querySelectorAll('.sidebar-nav a').forEach(a => {
       a.classList.toggle('active', a.getAttribute('data-link') === view);
     });
@@ -397,17 +384,16 @@ document.querySelectorAll('[data-link]').forEach(link => {
 });
 
 // Bootstrapping
-// 1. Initial hydration with cached data (instant)
+(window as any).navigateTo = navigateTo;
 hydrateUI();
+UI.initTiltEffect();
 
-// 2. Fetch fresh data from API
 BlogStore.init().then(() => {
-  hydrateUI(); // Re-hydrate with fresh data
-  ChatUI.initBackgroundWatcher(); // Start watching for messages
+  hydrateUI();
+  ChatUI.initBackgroundWatcher();
   const currentPath = window.location.pathname.replace('/', '') || 'home';
   navigateTo(currentPath);
 
-  // Global Logout Listener
   document.getElementById('logout-action-btn')?.addEventListener('click', (e) => {
     e.preventDefault();
     ChatUI.close();
