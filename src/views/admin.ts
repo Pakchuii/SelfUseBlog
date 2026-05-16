@@ -246,10 +246,18 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
                     </div>
                     <div>
                        <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">首页 Banner (URL/Upload)</label>
-                       <div style="display: flex; gap: 0.8rem;">
+                       <div style="display: flex; gap: 0.8rem; margin-bottom: 1rem;">
                           <input id="cfg-bannerImageUrl" value="${config.bannerImageUrl || ''}" style="flex: 1; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b;">
                           <button id="cfg-banner-upload-btn" style="padding: 0 1.2rem; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 15px; cursor: pointer;">↑</button>
                           <input type="file" id="cfg-banner-upload" accept="image/*" style="display: none;">
+                       </div>
+                    </div>
+                    <div>
+                       <label style="font-size: 0.85rem; color: #64748b; display: block; margin-bottom: 0.6rem; font-weight: 700;">网站图标 (Favicon URL/Upload)</label>
+                       <div style="display: flex; gap: 0.8rem;">
+                          <input id="cfg-faviconUrl" value="${config.faviconUrl || ''}" style="flex: 1; padding: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 15px; color: #1e293b;">
+                          <button id="cfg-favicon-upload-btn" style="padding: 0 1.2rem; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 15px; cursor: pointer;">↑</button>
+                          <input type="file" id="cfg-favicon-upload" accept="image/*" style="display: none;">
                        </div>
                     </div>
                  </div>
@@ -847,6 +855,29 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
     finally { transUploadBtn!.textContent = '↑'; }
   });
 
+  // Favicon Upload Logic
+  const favUploadBtn = document.getElementById('cfg-favicon-upload-btn');
+  const favUploadInput = document.getElementById('cfg-favicon-upload') as HTMLInputElement;
+  const favUrlInput = document.getElementById('cfg-faviconUrl') as HTMLInputElement;
+
+  favUploadBtn?.addEventListener('click', () => favUploadInput.click());
+  favUploadInput?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    favUploadBtn!.textContent = '...';
+    try {
+      const res = await fetch(`${BlogStore.getApiBase()}/upload?type=asset`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        favUrlInput.value = data.url;
+        UI.toast('图标上传成功', 'success');
+      }
+    } catch (e) { UI.toast('上传失败', 'error'); }
+    finally { favUploadBtn!.textContent = '↑'; }
+  });
+
   // Global Bg Upload Logic
   const globalBgUploadBtn = document.getElementById('cfg-global-bg-upload-btn');
   const globalBgUploadInput = document.getElementById('cfg-global-bg-upload') as HTMLInputElement;
@@ -941,6 +972,7 @@ export function renderAdmin(container: HTMLElement, onNavigate: (to: string) => 
         newConfig.globalBackgroundUrl = (document.getElementById('cfg-globalBackgroundUrl') as HTMLInputElement).value;
         newConfig.bannerSubtitle = (document.getElementById('cfg-bannerSubtitle') as HTMLInputElement).value;
         newConfig.home_transition_bg = (document.getElementById('cfg-home_transition_bg') as HTMLInputElement).value;
+        newConfig.faviconUrl = (document.getElementById('cfg-faviconUrl') as HTMLInputElement).value;
       } else if (type === 'home-mid') {
         newConfig.homeMidTitle = (document.getElementById('cfg-homeMidTitle') as HTMLInputElement).value;
         newConfig.homeMidContent = (document.getElementById('cfg-homeMidContent') as HTMLTextAreaElement).value;

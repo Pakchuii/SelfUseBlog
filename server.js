@@ -136,7 +136,8 @@ db.serialize(() => {
         about_carousel_3_desc: "正在全屏扫描系统架构... 身份识别正常。欢迎回来，Pakchuii。",
         about_visual_1_img: "/uploads/about_card_1.png",
         about_visual_2_img: "/uploads/about_card_2.png",
-        home_transition_bg: ""
+        home_transition_bg: "",
+        faviconUrl: ""
       };
       for (const [k, v] of Object.entries(defaultCfg)) {
         db.run(`INSERT INTO config (key, value) VALUES (?, ?)`, [k, v]);

@@ -58,6 +58,7 @@ export interface SiteConfig {
   about_visual_1_img?: string;
   about_visual_2_img?: string;
   home_transition_bg?: string;
+  faviconUrl?: string;
 }
 
 export interface User {
@@ -91,7 +92,8 @@ let config: SiteConfig = cachedConfig ? JSON.parse(cachedConfig) : {
   ]),
   aboutContent: "# 关于我 / Identity\n\n痴迷于安全技术的小白帽。记录自己技术增长过程的博客。\n\n> 孩儿立志出乡关，学不成名誓不还。",
   aboutBannerUrl: "/uploads/about_banner.png",
-  home_transition_bg: ""
+  home_transition_bg: "",
+  faviconUrl: ""
 };
 
 // Try to load cached user
@@ -131,6 +133,7 @@ export const BlogStore = {
         config.bannerImageUrl = normalizeUrl(config.bannerImageUrl) as string;
         config.avatarUrl = normalizeUrl(config.avatarUrl) as string;
         config.home_transition_bg = normalizeUrl(config.home_transition_bg) as string;
+        config.faviconUrl = normalizeUrl(config.faviconUrl) as string;
         localStorage.setItem('fawang_config', JSON.stringify(config));
       }
       if (Array.isArray(artRes)) {
